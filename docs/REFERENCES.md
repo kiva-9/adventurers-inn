@@ -17,3 +17,4 @@
 - [Generative Agents 研究实现](https://github.com/joonspk-research/generative_agents)：观察作者的初始记忆流格式；本作仅采用自有事件记录结构。
 - [Vite 静态部署指南](https://vite.dev/guide/static-deploy)：以构建产物和预览服务验证，无需部署到外网。
 - GitHub CLI 的 [认证检查](https://cli.github.com/manual/gh_auth_status)、[创建仓库](https://cli.github.com/manual/gh_repo_create) 与 [查看仓库](https://cli.github.com/manual/gh_repo_view)：核对实际账户、私有创建和远端元数据。
+- 2026-11-07 阅读 GitHub 官方 [Pages 自定义工作流](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) 与 [发布源设置](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)：使用 Actions 构建、上传静态产物并以 `github-pages` 环境发布。

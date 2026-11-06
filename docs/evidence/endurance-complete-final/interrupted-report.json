@@ -1,0 +1,180 @@
+{
+  "started": "2026-11-06T22:30:11.557Z",
+  "browser": "156.0.8078.80",
+  "target": "http://127.0.0.1:5270/",
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "failedRequests": [],
+  "httpErrors": [],
+  "httpResponses": [
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/index-bkWaOHAk.css"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/index-D3v3pRa5.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/favicon.svg"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/worker-C64ZLxIy.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/Filter-CbS0KQbV.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/getTexelRangeRects-B0_R58YC.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/WebGLRenderer-tOWgPlcV.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/RenderTargetSystem-7M7LJl2I.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/webworkerAll-ERV0bikF.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/browserAll-DJqJvXDG.js"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5270/8416d1d2-fe40-40be-9ede-02c5b83d6f06"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5270/0a4b20fc-d18f-4254-b34a-78f06bef184b"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5270/0a4b20fc-d18f-4254-b34a-78f06bef184b"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5270/0a4b20fc-d18f-4254-b34a-78f06bef184b"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/buildings.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/town-tiles.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/people.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/favicon.svg"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5270/assets/index-bkWaOHAk.css"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5270/assets/index-D3v3pRa5.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/favicon.svg"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/worker-C64ZLxIy.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5270/assets/WebGLRenderer-tOWgPlcV.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5270/assets/getTexelRangeRects-B0_R58YC.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5270/assets/RenderTargetSystem-7M7LJl2I.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5270/assets/Filter-CbS0KQbV.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5270/assets/browserAll-DJqJvXDG.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5270/assets/webworkerAll-ERV0bikF.js"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5270/0efa77fa-7b28-4c76-9907-8053dab62c5b"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5270/cc139834-a09a-46ce-b237-77f57e3bc67a"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5270/cc139834-a09a-46ce-b237-77f57e3bc67a"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5270/cc139834-a09a-46ce-b237-77f57e3bc67a"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/people.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/town-tiles.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5270/assets/buildings.png"
+    }
+  ],
+  "origins": [
+    "http://127.0.0.1:5270"
+  ],
+  "checkpoints": [
+    {
+      "atMs": 4259,
+      "action": "新游戏经正常等待至第30日评议；第31日续营、短工、保存、刷新与载入"
+    },
+    {
+      "atMs": 60193,
+      "action": "第 1 轮：倍速、♜ 经营旅店"
+    }
+  ],
+  "limitations": [
+    "未采样内存和事件监听器数量；未测量帧率。",
+    "浏览器系统时钟固定以选择可复现的新游戏种子；未注入存档或世界状态。"
+  ],
+  "continuedStarted": "2026-11-06T22:30:15.374Z",
+  "elapsedMs": 60193,
+  "interruption": "按主任务要求中断：新增公开仓库和 GitHub Pages 部署，资源路径可能变更，部署代码稳定后须重测。"
+}

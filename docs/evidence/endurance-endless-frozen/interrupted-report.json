@@ -1,0 +1,204 @@
+{
+  "started": "2026-11-06T22:03:05.719Z",
+  "browser": "156.0.8078.80",
+  "target": "http://127.0.0.1:5202/",
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "failedRequests": [],
+  "httpErrors": [],
+  "httpResponses": [
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/index-DYuZmyN_.css"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/index-Dpl-wyBf.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/favicon.svg"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/worker-B8fO3rop.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/Filter-DcKycWnC.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/getTexelRangeRects-Bag5urB5.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/RenderTargetSystem-B4JFNAMp.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/WebGLRenderer-DlJnua1v.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/webworkerAll-CtGOmRbA.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/browserAll-Dz2QhKvo.js"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5202/effd8ef1-5b8c-4f8b-8060-d436f95c73e4"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5202/6737ffce-78ba-4ee3-8ecd-9dd146920c2f"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5202/6737ffce-78ba-4ee3-8ecd-9dd146920c2f"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5202/6737ffce-78ba-4ee3-8ecd-9dd146920c2f"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/town-tiles.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/buildings.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/people.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/favicon.svg"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5202/assets/index-DYuZmyN_.css"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5202/assets/index-Dpl-wyBf.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/favicon.svg"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/worker-B8fO3rop.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5202/assets/WebGLRenderer-DlJnua1v.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5202/assets/getTexelRangeRects-Bag5urB5.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5202/assets/RenderTargetSystem-B4JFNAMp.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5202/assets/Filter-DcKycWnC.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5202/assets/browserAll-Dz2QhKvo.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5202/assets/webworkerAll-CtGOmRbA.js"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5202/ffad13fa-984a-451f-ada1-80416eb1b463"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5202/5b3d56e2-407b-49ac-8558-8d64e6f2ad9c"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5202/5b3d56e2-407b-49ac-8558-8d64e6f2ad9c"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5202/5b3d56e2-407b-49ac-8558-8d64e6f2ad9c"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/town-tiles.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/buildings.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5202/assets/people.png"
+    }
+  ],
+  "origins": [
+    "http://127.0.0.1:5202"
+  ],
+  "checkpoints": [
+    {
+      "atMs": 4203,
+      "action": "新游戏经正常等待至第30日评议；第31日续营、短工、保存、刷新与载入"
+    },
+    {
+      "atMs": 60157,
+      "action": "第 1 轮：倍速、♜ 经营旅店"
+    },
+    {
+      "atMs": 116063,
+      "action": "第 2 轮：倍速、♧ 人物关系"
+    },
+    {
+      "atMs": 172002,
+      "action": "第 3 轮：倍速、☷ 事件记录"
+    },
+    {
+      "atMs": 228109,
+      "action": "第 4 轮：倍速、♜ 经营旅店、保存载入"
+    },
+    {
+      "atMs": 284041,
+      "action": "第 5 轮：倍速、♧ 人物关系"
+    },
+    {
+      "atMs": 339961,
+      "action": "第 6 轮：倍速、☷ 事件记录"
+    },
+    {
+      "atMs": 395895,
+      "action": "第 7 轮：倍速、♜ 经营旅店"
+    }
+  ],
+  "limitations": [
+    "未采样内存和事件监听器数量；未测量帧率。",
+    "浏览器系统时钟固定以选择可复现的新游戏种子；未注入存档或世界状态。"
+  ],
+  "continuedStarted": "2026-11-06T22:03:09.469Z",
+  "elapsedMs": 395895,
+  "interruption": "按主任务要求中断：用户反馈画面静态，动画修复后须从零重测。"
+}
