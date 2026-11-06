@@ -1,5 +1,6 @@
 import type { Place } from './types';
 import { TOWN_HEIGHT, TOWN_WIDTH } from './pathfinding';
+import { SQUARE_DOORS } from './scene-transitions';
 
 /**
  * Solid cells painted by renderer.ts, in 32px scene-local tiles. Pure lookup;
@@ -31,6 +32,6 @@ export function isSceneBlocked(place: Place, x: number, y: number, beds: number)
   if (place === 'market') {
     return square(3,3) || square(13,3) || square(23,3) || any([[6,5],[12,5],[20,5],[25,5],[6,6],[12,6],[20,6],[25,6],[9,13],[21,13]]);
   }
-  if (place === 'square') return square(13,3) || square(4,3) || square(24,3) || any([[9,5],[20,6],[9,13],[21,13]]);
+  if (place === 'square') return SQUARE_DOORS.some(d=>square(d.x-1,3)) || any([[9,13],[21,13]]);
   return square(14,2) || square(4,4) || square(24,4) || any([[9,13],[21,13]]);
 }

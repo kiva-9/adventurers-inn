@@ -1,5 +1,6 @@
 import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js';
 import type { NPC, Place, World } from './types';
+import { SQUARE_DOORS } from './scene-transitions';
 
 const TILE=32, COLS=31, ROWS=17;
 /** The simulation owns coordinates; this class only paints its snapshots. */
@@ -34,17 +35,18 @@ export class WorldRenderer {
    [[4,5],[8,5],[16,8],[20,8],[24,8]].forEach(([x,y])=>this.tile(3,3,x,y));
    [[2,5],[10,5],[26,4],[27,11],[19,12]].forEach(([x,y])=>this.tile(5,1,x,y));
    [13,14,15,16,17].forEach(x=>this.tile(7,2,x,13));this.tile(4,1,12,4);this.tile(4,1,21,4);this.tile(6,1,27,8);this.tile(6,1,3,14);this.tile(3,2,25,11);
-   this.label('吧台',4*32,3*32);this.label('客房',3*32,10*32);this.label('公共厅',16*32,6*32);
+   this.label('返回广场',14*32,14*32);this.label('吧台',4*32,3*32);this.label('客房',3*32,10*32);this.label('公共厅',16*32,6*32);
   } else if(place==='guild'){
-   for(let x=4;x<13;x++)this.tile(2,1,x,4);[6,12,18,24].forEach(x=>this.tile(2,3,x,2));[15,20,25].forEach(x=>this.tile(1,1,x,8));this.tile(1,3,23,3);this.tile(5,1,3,11);this.tile(7,1,15,15);this.label('委托与远征',5*32,3*32);
+   for(let x=4;x<13;x++)this.tile(2,1,x,4);[6,12,18,24].forEach(x=>this.tile(2,3,x,2));[15,20,25].forEach(x=>this.tile(1,1,x,8));this.tile(1,3,23,3);this.tile(5,1,3,11);this.tile(7,1,15,15);this.label('返回广场',14*32,14*32);this.label('委托与远征',5*32,3*32);
   } else if(place==='clinic'){
-   [5,10,15,20,25].forEach(x=>{this.tile(0,1,x,6);this.tile(5,1,x+1,6)});[4,9,14,19,24].forEach(x=>this.tile(0,3,x,1));this.tile(2,1,4,3);this.tile(6,1,27,4);this.tile(7,1,15,15);this.label('诊疗室',4*32,2*32);
+   [5,10,15,20,25].forEach(x=>{this.tile(0,1,x,6);this.tile(5,1,x+1,6)});[4,9,14,19,24].forEach(x=>this.tile(0,3,x,1));this.tile(2,1,4,3);this.tile(6,1,27,4);this.tile(7,1,15,15);this.label('返回广场',14*32,14*32);this.label('诊疗室',4*32,2*32);
   } else {
-   const objects:Record<Exclude<Place,'inn'|'guild'|'clinic'>,[number,number,number][]>={market:[[2,3,3],[1,13,3],[2,23,3]],square:[[4,13,3],[0,4,3],[1,24,3]],gate:[[5,14,2],[0,4,4],[2,24,4]]};
+   const objects:Record<Exclude<Place,'inn'|'guild'|'clinic'>,[number,number,number][]>={market:[[2,3,3],[1,13,3],[2,23,3]],square:SQUARE_DOORS.map(d=>[d.building,d.x-1,3] as [number,number,number]),gate:[[5,14,2],[0,4,4],[2,24,4]]};
    for(const [b,x,y] of objects[place])this.building(b,x,y);
    for(let x=1;x<30;x+=4){if((x*7)%3===0)this.tile(0,2,x,13);else this.tile(2,2,x,14)}
    if(place==='market'){[6,12,20,25].forEach(x=>{this.tile(1,1,x,5);this.tile(6,2,x,6)});this.label('集市摊位',9*32,4*32)}
-   if(place==='square'){this.tile(1,3,9,5);this.tile(4,2,20,6);this.label('镇广场',13*32,6*32)}
+   if(place==='square'){for(const door of SQUARE_DOORS)this.label(door.label,(door.x-1)*32,2*32);this.label('靠近门口按 E 进入',11*32,8*32)}
+   else {this.tile(7,1,15,15);this.label('返回广场',14*32,14*32)}
    if(place==='gate')this.label('通往旷野',14*32,6*32);
   }
   const shade=new Graphics().rect(0,0,COLS*TILE,ROWS*TILE).fill({color:0x182a26,alpha:.035});this.scene.addChild(shade);

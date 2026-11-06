@@ -6,7 +6,7 @@ test('新游戏、经营、远征、存档与刷新载入',async({page})=>{
  page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
  page.on('response',r=>{if(r.status()>=400)errors.push(`HTTP ${r.status()} ${r.url()}`)});
  await page.setViewportSize({width:1280,height:720});
- await page.goto('http://127.0.0.1:5187/');
+ await page.goto('/');
  await page.getByRole('button',{name:'开始新旅程'}).click();
  await expect(page.getByText('旅店许可评议')).toBeVisible();
  await page.waitForTimeout(2000);

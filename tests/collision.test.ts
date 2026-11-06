@@ -55,3 +55,5 @@ import {createWorld,command} from '../src/engine';
 import {test} from 'vitest';
 test('玩家移动在柜台前被拒绝，仍可转向离开',()=>{const w=createWorld(42);expect(command(w,{type:'move',dx:0,dy:-1})).toBe(true);expect(command(w,{type:'move',dx:0,dy:-1})).toBe(true);expect(command(w,{type:'move',dx:0,dy:-1})).toBe(false);expect(w.player).toMatchObject({x:5,y:5});expect(command(w,{type:'move',dx:1,dy:0})).toBe(true)});
 
+import {SQUARE_DOORS,doorDestination} from '../src/scene-transitions';
+it('广场五个门口均可从出生点走到并进入，各场所出口返回广场',()=>{for(const door of SQUARE_DOORS){const route=findPath({x:14,y:9},{x:door.x,y:door.y},(x,y)=>isSceneBlocked('square',x,y,3));expect(route,door.label).not.toBeNull();expect(doorDestination('square',door.x,door.y)).toBe(door.place);expect(doorDestination(door.place,15,14)).toBe('square')}expect(doorDestination('square',14,9)).toBeNull()});
