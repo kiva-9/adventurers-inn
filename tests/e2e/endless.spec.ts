@@ -70,5 +70,11 @@ test('失败评议后继续经营、保存载入和公会短工',async({page})=>
  await page.getByRole('button',{name:'▤ 委托告示'}).click();
  await expect(page.getByRole('heading',{name:'近期周期委托记录'})).toBeVisible();
  await expect(page.locator('.modal-body .tag').filter({hasText:'周期委托'})).toHaveCount(2);
+ await page.getByRole('button',{name:'关闭',exact:true}).click();
+ await page.getByRole('button',{name:'◆ 评议记录与重开'}).click();
+ await page.getByRole('button',{name:'重新开始',exact:true}).click();
+ await page.getByRole('button',{name:'确认重新开始'}).click();
+ await expect(page.locator('.topbar .stat').first()).toContainText('第 1 / 30 日');
+ await expect(page.getByRole('heading',{name:'旅店许可评议'})).toBeVisible();
  expect(errors).toEqual([]);
 });
