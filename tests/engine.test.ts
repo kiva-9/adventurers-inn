@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { advance, command, createWorld, validateWorld } from '../src/engine';
+import { advance, command, createWorld, helperAvailability, validateWorld } from '../src/engine';
 
 describe('世界账本与规则', () => {
   it('采购扣款和库存一致，非法数值不能污染账本', () => {
@@ -124,6 +124,8 @@ describe('世界账本与规则', () => {
     const staffed=createWorld(12), empty=createWorld(12);
     for(const w of [staffed,empty]) { w.player.place='guild'; w.npc[0].hunger=99; }
     empty.helper=false;
+    // Explicitly place the employed worker on site during the shift.
+    staffed.npc[12].place='inn';staffed.npc[12].x=5;staffed.npc[12].y=6;
     advance(staffed,60); advance(empty,60);
     expect(staffed.npc[0].hunger).toBeLessThan(empty.npc[0].hunger);
     expect(staffed.events.some(e=>e.kind==='用餐'&&e.people.includes('n0'))).toBe(true);
@@ -446,3 +448,56 @@ it('还清本金后不会产生利息，设施到上限拒绝前不扣钱',()=>{
 it('续营超过百日且日志满额时仍保留新短工事件和角色近期记忆',()=>{const w=createWorld(101);while(w.chapter==='进行中')advance(w,60);expect(command(w,{type:'continue'})).toBe(true);while(w.day<115)advance(w,1440);expect(w.events.length).toBe(400);expect(command(w,{type:'travel',place:'guild'})).toBe(true);expect(command(w,{type:'guildWork'})).toBe(true);const e=w.events.slice().reverse().find(e=>e.kind==='短工');expect(e).toBeDefined();expect(w.npc.every(n=>n.memories.some(m=>m.eventId===e!.id))).toBe(true);expect(w.events.length).toBe(400);expect(w.npc.every(n=>n.memories.length<=30)).toBe(true)});
 
 it('续营后已有同类调查时拒绝再接，避免一次远征的任务归属歧义',()=>{const w=createWorld(4);expect(command(w,{type:'policy',price:20,mealPrice:12,helper:false,credit:false})).toBe(true);expect(command(w,{type:'travel',place:'market'})).toBe(true);expect(command(w,{type:'buy',item:'herbs',amount:30})).toBe(true);expect(command(w,{type:'buy',item:'herbs',amount:30})).toBe(true);advance(w,4320);expect(command(w,{type:'travel',place:'guild'})).toBe(true);expect(command(w,{type:'quest',id:'q1'})).toBe(true);while(w.chapter==='进行中')advance(w,60);expect(command(w,{type:'continue'})).toBe(true);const q=w.quests.find(q=>q.id==='r2');expect(q?.kind).toBe('调查');expect(command(w,{type:'quest',id:'r2'})).toBe(false);expect(q?.status).toBe('可接');expect(w.lastMessage).toContain('已有同类委托');expect(validateWorld(w)).toBe(true)});
+
+
+describe('帮手在岗与工资', () => {
+  it('正常新游戏中帮手先前往旅店，抵达后当班可自动服务', () => {
+    const w=createWorld(101);const n=w.npc[12];
+    expect(w.helper).toBe(true);expect(n.place).toBe('market');expect(helperAvailability(w).available).toBe(false);
+    advance(w,60);expect(n.destination).toBe('inn');expect(helperAvailability(w).available).toBe(false);
+    advance(w,30);expect(n.place).toBe('inn');expect(n.action).toBe('照看旅店');expect(helperAvailability(w).available).toBe(true);
+    expect(validateWorld(JSON.parse(JSON.stringify(w)))).toBe(true);
+  });
+
+  it('相同场景和顾客需求下，实际在岗才自动供餐，休息与伤病不视为在岗', () => {
+    const staffed=createWorld(2),absent=createWorld(2);
+    for(const w of [staffed,absent]){w.player.place='guild';w.npc[0].hunger=99;}
+    staffed.npc[12].place='inn';staffed.npc[12].x=5;staffed.npc[12].y=6;
+    expect(helperAvailability(staffed).available).toBe(true);expect(helperAvailability(absent).available).toBe(false);
+    advance(staffed,60);advance(absent,60);
+    expect(staffed.events.some(e=>e.kind==='用餐'&&e.people.includes('n0'))).toBe(true);
+    expect(absent.events.some(e=>e.kind==='用餐'&&e.people.includes('n0'))).toBe(false);
+    staffed.npc[12].bed=true;expect(helperAvailability(staffed).label).toBe('正在休息');
+    staffed.npc[12].bed=false;staffed.npc[12].health=30;expect(helperAvailability(staffed).label).toBe('因伤休养');
+    staffed.npc[12].health=100;staffed.minute=1200;expect(helperAvailability(staffed).label).toBe('下班休息');
+  });
+
+  it('成功付薪时旅店支出转入员工钱包，缺钱则不转钱且停止雇佣', () => {
+    const paid=createWorld(3),unpaid=createWorld(3);paid.minute=1439;unpaid.minute=1439;unpaid.gold=3;
+    const paidWallet=paid.npc[12].money,unpaidWallet=unpaid.npc[12].money;
+    advance(paid,1);advance(unpaid,1);
+    expect(paid.npc[12].money).toBe(paidWallet+4);expect(paid.expense).toBe(24);
+    expect(paid.events.some(e=>e.kind==='工资'&&e.text.includes('转入她的钱包'))).toBe(true);
+    expect(unpaid.npc[12].money).toBe(unpaidWallet);expect(unpaid.helper).toBe(false);expect(unpaid.debt).toBe(80);
+    expect(unpaid.events.some(e=>e.kind==='工资'&&e.text.includes('工资未支付'))).toBe(true);
+    expect(validateWorld(paid)).toBe(true);expect(validateWorld(unpaid)).toBe(true);
+  });
+
+  it('受伤且无草药时不上岗并等待治疗，恢复后可回旅店', () => {
+    const w=createWorld(4),n=w.npc[12];n.health=40;w.herbs=0;advance(w,60);
+    expect(n.action).toBe('因伤休养');expect(helperAvailability(w).available).toBe(false);
+    command(w,{type:'travel',place:'market'});expect(command(w,{type:'buy',item:'herbs',amount:3})).toBe(true);
+    advance(w,250);expect(n.health).toBeGreaterThanOrEqual(65);advance(w,250);
+    expect(n.place).toBe('inn');expect(helperAvailability(w).available).toBe(true);
+  });
+
+  it('雇佣和远征互斥，辞退后才可派遣，离镇时无法重新聘用', () => {
+    const w=createWorld(5);command(w,{type:'travel',place:'guild'});
+    expect(command(w,{type:'expedition',region:'森林',members:['n12'],supply:2,strategy:'谨慎'})).toBe(false);
+    expect(w.lastMessage).toContain('须先结束雇佣');command(w,{type:'travel',place:'inn'});
+    expect(command(w,{type:'policy',helper:false})).toBe(true);command(w,{type:'travel',place:'guild'});
+    expect(command(w,{type:'expedition',region:'森林',members:['n12'],supply:2,strategy:'谨慎'})).toBe(true);
+    command(w,{type:'travel',place:'inn'});expect(command(w,{type:'policy',helper:true})).toBe(false);expect(w.helper).toBe(false);
+    const saved=JSON.parse(JSON.stringify(w));expect(validateWorld(saved)).toBe(true);
+  });
+});
