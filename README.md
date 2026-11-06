@@ -15,4 +15,4 @@ npm run dev
 
 自动存档保存在当前浏览器的 IndexedDB，也可使用三个手动槽位或导出 JSON；更换浏览器/清理站点数据前请先导出。关闭页面不会在后台推进时间。离线话题对话无需账号或密钥；可选 Ollama 代理默认关闭，见 [配置说明](server/README.md)，真实模型服务的验证状态见验证记录。
 
-开发命令：`npm run typecheck`、`npm test`、`npm run build`、`npm run validate:sim`。`npm run preview` 在本机 5188 提供构建预览。浏览器测试 `npm run test:e2e`；如缺浏览器可先执行 `npx playwright install chromium`。15 分钟耐久测试默认不运行，需显式配置，详见验证记录。
+开发命令：`npm run typecheck`、`npm test`、`npm run build`、`npm run validate:sim`、`npm run validate:endless`。`npm run preview` 在本机 5188 提供构建预览。浏览器测试 `npm run test:e2e`；如缺浏览器可先执行 `npx playwright install chromium`。15 分钟耐久测试默认不运行，需显式配置，详见验证记录。

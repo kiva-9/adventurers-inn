@@ -14,7 +14,8 @@
     "test": "vitest run src/llm tests/engine.test.ts tests/pathfinding.test.ts tests/collision.test.ts tests/supply-crisis.test.ts tests/supply-cycles.test.ts && node --test server/llm.test.mjs",
     "test:e2e": "playwright test",
     "validate:sim": "tsx scripts/validate-sim.ts",
-    "llm:server": "node server/llm.mjs"
+    "llm:server": "node server/llm.mjs",
+    "validate:endless": "tsx scripts/validate-endless.ts"
   },
   "dependencies": {
     "pixi.js": "^8.19.0",
