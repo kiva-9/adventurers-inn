@@ -16,7 +16,8 @@ export class WorldRenderer {
  async mount(host:HTMLElement){
   const app=new Application(); await app.init({width:COLS*TILE,height:ROWS*TILE,background:'#445d4b',antialias:false,preference:'webgl',resolution:1});
   if(this.dead){app.destroy(true);return} this.app=app;app.canvas.setAttribute('aria-label','像素小镇游戏画面');host.prepend(app.canvas);app.stage.addChild(this.scene,this.actors,this.night,this.lights);this.night.eventMode='none';this.night.alpha=0;this.lights.eventMode='none';
-  const [tiles,people,buildings]=await Promise.all([Assets.load('/assets/town-tiles.png'),Assets.load('/assets/people.png'),Assets.load('/assets/buildings.png')]);
+  const assetBase=`${import.meta.env.BASE_URL}assets/`;
+  const [tiles,people,buildings]=await Promise.all([Assets.load(`${assetBase}town-tiles.png`),Assets.load(`${assetBase}people.png`),Assets.load(`${assetBase}buildings.png`)]);
   if(this.dead)return;this.tileSheet=tiles as Texture;this.peopleSheet=people as Texture;this.buildings=buildings as Texture;
   this.tileSheet.source.scaleMode='nearest';this.peopleSheet.source.scaleMode='nearest';this.buildings.source.scaleMode='nearest';
   app.ticker.add(this.animate);
