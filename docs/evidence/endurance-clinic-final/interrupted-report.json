@@ -1,0 +1,186 @@
+{
+  "started": "2026-11-06T23:01:01.45Z",
+  "browser": "156.0.8078.80",
+  "target": "http://127.0.0.1:5273/adventurers-inn/",
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "failedRequests": [],
+  "httpErrors": [],
+  "httpResponses": [
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/index-bkWaOHAk.css"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/index-x8BxYUkg.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/favicon.svg"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/worker-CmVsL5b9.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/Filter-BaSaYqk4.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/getTexelRangeRects-DyFGxHo8.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/RenderTargetSystem-Dw0F-0DV.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/WebGLRenderer-C8Wy5bDj.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/webworkerAll-BTVq4hqp.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/browserAll-DjVfgJOO.js"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5273/ddbecb32-1a34-403f-ab9b-2ec925d5c989"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5273/b9b56508-8e94-4be6-b2e1-46a50b6bc53e"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5273/b9b56508-8e94-4be6-b2e1-46a50b6bc53e"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5273/b9b56508-8e94-4be6-b2e1-46a50b6bc53e"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/buildings.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/people.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/town-tiles.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/favicon.svg"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/index-bkWaOHAk.css"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/index-x8BxYUkg.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/favicon.svg"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/worker-CmVsL5b9.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/WebGLRenderer-C8Wy5bDj.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/getTexelRangeRects-DyFGxHo8.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/RenderTargetSystem-Dw0F-0DV.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/Filter-BaSaYqk4.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/browserAll-DjVfgJOO.js"
+    },
+    {
+      "status": 304,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/webworkerAll-BTVq4hqp.js"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5273/c0c9a87e-06a9-4944-94e1-23f7447c0c62"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5273/cf3185fd-4f50-440e-8a79-7b0d80427f38"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5273/cf3185fd-4f50-440e-8a79-7b0d80427f38"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5273/cf3185fd-4f50-440e-8a79-7b0d80427f38"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/people.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/buildings.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5273/adventurers-inn/assets/town-tiles.png"
+    }
+  ],
+  "origins": [
+    "http://127.0.0.1:5273"
+  ],
+  "checkpoints": [
+    {
+      "atMs": 4550,
+      "action": "新游戏经正常等待至第30日评议；第31日续营、短工、保存、刷新与载入"
+    },
+    {
+      "atMs": 60478,
+      "action": "第 1 轮：倍速、♜ 经营旅店"
+    },
+    {
+      "atMs": 116392,
+      "action": "第 2 轮：倍速、♧ 人物关系"
+    }
+  ],
+  "limitations": [
+    "未采样内存和事件监听器数量；未测量帧率。",
+    "浏览器系统时钟固定以选择可复现的新游戏种子；未注入存档或世界状态。"
+  ],
+  "continuedStarted": "2026-11-06T23:01:05.558Z",
+  "elapsedMs": 116392,
+  "stoppedObservedUtc": "2026-11-07T07:03:46.635+08:00",
+  "continuedObservedElapsedMs": 161077,
+  "interruption": "按用户明确要求停止最终验证；此次不满15分钟，不可标为通过。错误计数只覆盖最后落盘检查点。"
+}

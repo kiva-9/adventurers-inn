@@ -1,0 +1,105 @@
+{
+  "browser": "158.0.8127.18",
+  "mode": "headless Chrome, forced GC before each sample, main page only",
+  "samples": [
+    {
+      "elapsedMs": 367,
+      "day": "第 1 / 30 日\n08:03",
+      "usedHeapBytes": 4026028,
+      "documents": 1,
+      "nodes": 160,
+      "jsEventListeners": 212,
+      "errors": []
+    },
+    {
+      "elapsedMs": 60805,
+      "day": "第 1 / 30 日\n18:06",
+      "usedHeapBytes": 7015048,
+      "documents": 1,
+      "nodes": 185,
+      "jsEventListeners": 225,
+      "errors": []
+    },
+    {
+      "elapsedMs": 121287,
+      "day": "第 2 / 30 日\n04:09",
+      "usedHeapBytes": 7172812,
+      "documents": 1,
+      "nodes": 183,
+      "jsEventListeners": 210,
+      "errors": []
+    },
+    {
+      "elapsedMs": 181800,
+      "day": "第 2 / 30 日\n14:12",
+      "usedHeapBytes": 7301556,
+      "documents": 1,
+      "nodes": 183,
+      "jsEventListeners": 208,
+      "errors": []
+    },
+    {
+      "elapsedMs": 242248,
+      "day": "第 3 / 30 日\n00:18",
+      "usedHeapBytes": 7331460,
+      "documents": 1,
+      "nodes": 185,
+      "jsEventListeners": 225,
+      "errors": []
+    },
+    {
+      "elapsedMs": 302712,
+      "day": "第 3 / 30 日\n10:18",
+      "usedHeapBytes": 7329268,
+      "documents": 1,
+      "nodes": 183,
+      "jsEventListeners": 193,
+      "errors": []
+    },
+    {
+      "elapsedMs": 363229,
+      "day": "第 3 / 30 日\n20:21",
+      "usedHeapBytes": 7408912,
+      "documents": 1,
+      "nodes": 183,
+      "jsEventListeners": 208,
+      "errors": []
+    },
+    {
+      "elapsedMs": 423677,
+      "day": "第 4 / 30 日\n06:27",
+      "usedHeapBytes": 7533516,
+      "documents": 1,
+      "nodes": 183,
+      "jsEventListeners": 225,
+      "errors": []
+    },
+    {
+      "elapsedMs": 484226,
+      "day": "第 4 / 30 日\n16:30",
+      "usedHeapBytes": 7498620,
+      "documents": 1,
+      "nodes": 181,
+      "jsEventListeners": 207,
+      "errors": []
+    },
+    {
+      "elapsedMs": 545596,
+      "day": "第 5 / 30 日\n02:39",
+      "usedHeapBytes": 7592356,
+      "documents": 1,
+      "nodes": 181,
+      "jsEventListeners": 207,
+      "errors": []
+    },
+    {
+      "elapsedMs": 606462,
+      "day": "第 5 / 30 日\n12:45",
+      "usedHeapBytes": 7545992,
+      "documents": 1,
+      "nodes": 181,
+      "jsEventListeners": 207,
+      "errors": []
+    }
+  ]
+}
