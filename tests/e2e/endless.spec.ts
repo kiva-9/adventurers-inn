@@ -1,0 +1,66 @@
+import { test, expect, type Page } from '@playwright/test';
+import { existsSync } from 'node:fs';
+const chrome=process.env.PLAYWRIGHT_CHROME_EXECUTABLE||'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+test.use({launchOptions:existsSync(chrome)?{executablePath:chrome}:{},viewport:{width:1280,height:720}});
+test.setTimeout(180_000);
+const heading=(page:Page)=>page.locator('.modal-header h2').filter({hasText:'三十日 ·'});
+async function waitMorning(page:Page){
+ const clock=page.locator('.topbar .stat').first();const before=await clock.innerText();
+ await page.getByRole('button',{name:'等待至明早'}).click();
+ await expect.poll(async()=>await heading(page).isVisible()||(await clock.innerText())!==before,{timeout:10_000}).toBe(true);
+}
+test('失败评议后继续经营、保存载入和公会短工',async({page})=>{
+ await page.clock.setFixedTime(new Date(850473469));
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/');await page.getByRole('button',{name:'开始新旅程'}).click();
+ while(!(await heading(page).isVisible()))await waitMorning(page);
+ await expect(heading(page)).toContainText('失败');
+ await page.getByRole('button',{name:'继续经营',exact:true}).click();
+ await expect(heading(page)).toBeHidden();
+ await expect(page.locator('.topbar .stat').first()).toContainText('第 31 日');
+ await expect(page.getByRole('heading',{name:'首次评议结果'})).toBeVisible();
+ await expect(page.locator('.goal')).toContainText('失败');
+ // Read-only observation ensures the browser's own automatic transaction has committed.
+ await expect.poll(()=>page.evaluate(async()=>await new Promise<boolean>((resolve,reject)=>{
+  const open=indexedDB.open('returning-inn-save-v1',1);open.onerror=()=>reject(open.error);
+  open.onsuccess=()=>{const db=open.result;const tx=db.transaction('slots','readonly');const get=tx.objectStore('slots').get('auto');get.onsuccess=()=>{resolve(get.result?.continued===true);db.close()};get.onerror=()=>reject(get.error)};
+ }))).toBe(true);
+ await page.reload();await page.getByRole('button',{name:'继续旅程'}).click();
+ await expect(page.locator('.topbar .stat').first()).toContainText('第 31 日');
+ await expect(heading(page)).toBeHidden();
+ await expect(page.locator('.goal')).toContainText('失败');
+ await page.getByRole('button',{name:'⌖ 小镇地图'}).click();
+ await page.locator('.modal .card').filter({has:page.getByRole('heading',{name:'冒险者公会'})}).getByRole('button',{name:'前往'}).click();
+ await page.getByRole('button',{name:'▤ 委托告示'}).click();
+ await expect(page.getByText('公会会持续发布新委托',{exact:false})).toBeVisible();
+ const work=page.getByRole('button',{name:'做公会短工（120 分钟，12 金）'});
+ await expect(work).toBeEnabled();
+ const gold=page.locator('.topbar .stat').nth(1);
+ const before=Number((await gold.innerText()).match(/(\d+)\s*金/)?.[1]);
+ await work.click();
+ await expect.poll(async()=>Number((await gold.innerText()).match(/(\d+)\s*金/)?.[1])).toBe(before+12);
+ await expect(work).toBeDisabled();
+ await expect(page.getByText('今天已经做过短工',{exact:false})).toBeVisible();
+ await page.getByRole('button',{name:'关闭',exact:true}).click();
+ await page.getByRole('button',{name:'▣ 存档管理'}).click();
+ await page.locator('.row').filter({hasText:'存档 1'}).getByRole('button',{name:'保存'}).click();
+ await expect(page.locator('.toast')).toHaveText('存档已保存。');
+ await page.reload();await page.getByRole('button',{name:'存档管理'}).click();
+ await page.locator('.row').filter({hasText:'存档 1'}).getByRole('button',{name:'载入'}).click();
+ await expect(page.locator('.topbar .stat').first()).toContainText('第 31 日');
+ await expect(heading(page)).toBeHidden();
+ await expect(page.locator('.goal')).toContainText('失败');
+ await page.getByRole('button',{name:'▤ 委托告示'}).click();
+ await expect(page.getByRole('button',{name:'做公会短工（120 分钟，12 金）'})).toBeDisabled();
+ await page.getByRole('button',{name:'关闭',exact:true}).click();
+ await waitMorning(page);
+ await expect(page.locator('.topbar .stat').first()).toContainText('第 32 日');
+ await page.getByRole('button',{name:'◆ 评议记录与重开'}).click();
+ await expect(page.getByRole('heading',{name:'首次评议：失败'})).toBeVisible();
+ await page.getByRole('button',{name:'重新开始',exact:true}).click();
+ await expect(page.getByText('重新开始会建立新的旅程',{exact:false})).toBeVisible();
+ await page.getByRole('button',{name:'取消',exact:true}).click();
+ await expect(page.locator('.topbar .stat').first()).toContainText('第 32 日');
+ await page.screenshot({path:'docs/evidence/endless-history.png'});
+ expect(errors).toEqual([]);
+});

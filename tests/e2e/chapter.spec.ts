@@ -154,6 +154,10 @@ test('真实 UI：守望路线从新游戏到成功结局', async ({page}) => {
   await expect(endHeading(page)).toContainText('守望相助');
   console.log('成功结算：', (await page.locator('.modal-backdrop .modal-body').last().innerText()).slice(0,250));
   await page.screenshot({path:'docs/evidence/chapter-success.png'});
+  await page.getByRole('button',{name:'继续经营',exact:true}).click();
+  await expect(endHeading(page)).toBeHidden();
+  await expect(page.locator('.topbar .stat').first()).toContainText('第 31 日');
+  await expect(page.locator('.goal')).toContainText('守望相助');
   expect(errors).toEqual([]);
 });
 
