@@ -125,6 +125,7 @@ async function forest(p: Page) {
 }
 
 test('真实 UI：守望路线从新游戏到成功结局', async ({page}) => {
+  await page.clock.setFixedTime(new Date(850449595));
   const errors:string[]=[]; page.on('pageerror',e=>errors.push(e.message));
   await start(page);
   await page.getByRole('button',{name:'♜ 经营旅店'}).click();
@@ -157,6 +158,7 @@ test('真实 UI：守望路线从新游戏到成功结局', async ({page}) => {
 });
 
 test('真实 UI：未达评议目标的失败和重新开始', async ({page}) => {
+  await page.clock.setFixedTime(new Date(850473469));
   const errors:string[]=[]; page.on('pageerror',e=>errors.push(e.message));
   await start(page);
   while(!(await endHeading(page).isVisible())) await morning(page);

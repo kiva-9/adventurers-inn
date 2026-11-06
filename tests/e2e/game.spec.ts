@@ -3,6 +3,8 @@ import {test,expect} from '@playwright/test';
 test('新游戏、经营、远征、存档与刷新载入',async({page})=>{
  const errors:string[]=[];
  page.on('pageerror',e=>errors.push(e.message));
+ page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
+ page.on('response',r=>{if(r.status()>=400)errors.push(`HTTP ${r.status()} ${r.url()}`)});
  await page.setViewportSize({width:1280,height:720});
  await page.goto('http://127.0.0.1:5187/');
  await page.getByRole('button',{name:'开始新旅程'}).click();

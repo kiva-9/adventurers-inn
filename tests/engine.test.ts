@@ -194,3 +194,6 @@ describe('世界账本与规则', () => {
   });
 
 });
+
+it('导入拒绝缺失委托、异常角色与矛盾床位',()=>{const w=createWorld(12);const missing=structuredClone(w);missing.quests=[];expect(validateWorld(missing)).toBe(false);const malformed=structuredClone(w);malformed.npc[0].skill='无效' as never;expect(validateWorld(malformed)).toBe(false);const crowded=structuredClone(w);for(let i=0;i<4;i++)crowded.npc[i].bed=true;expect(validateWorld(crowded)).toBe(false)});
+

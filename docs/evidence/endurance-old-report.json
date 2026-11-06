@@ -1,0 +1,91 @@
+{
+  "started": "2026-11-06T20:54:00.502Z",
+  "browser": "156.0.8078.80",
+  "target": "http://127.0.0.1:5197/",
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "failedRequests": [],
+  "origins": [
+    "http://127.0.0.1:5197"
+  ],
+  "checkpoints": [
+    {
+      "atMs": 462,
+      "action": "新游戏、走动、保存及载入"
+    },
+    {
+      "atMs": 56414,
+      "action": "第 1 轮：倍速、♜ 经营旅店"
+    },
+    {
+      "atMs": 112335,
+      "action": "第 2 轮：倍速、♧ 人物关系"
+    },
+    {
+      "atMs": 168266,
+      "action": "第 3 轮：倍速、☷ 事件记录"
+    },
+    {
+      "atMs": 224286,
+      "action": "第 4 轮：倍速、♜ 经营旅店、保存载入"
+    },
+    {
+      "atMs": 280201,
+      "action": "第 5 轮：倍速、♧ 人物关系"
+    },
+    {
+      "atMs": 336169,
+      "action": "第 6 轮：倍速、☷ 事件记录"
+    },
+    {
+      "atMs": 392083,
+      "action": "第 7 轮：倍速、♜ 经营旅店"
+    },
+    {
+      "atMs": 448183,
+      "action": "第 8 轮：倍速、♧ 人物关系、保存载入"
+    },
+    {
+      "atMs": 504096,
+      "action": "第 9 轮：倍速、☷ 事件记录"
+    },
+    {
+      "atMs": 560011,
+      "action": "第 10 轮：倍速、♜ 经营旅店"
+    },
+    {
+      "atMs": 615930,
+      "action": "第 11 轮：倍速、♧ 人物关系"
+    },
+    {
+      "atMs": 671963,
+      "action": "第 12 轮：倍速、☷ 事件记录、保存载入"
+    },
+    {
+      "atMs": 727876,
+      "action": "第 13 轮：倍速、♜ 经营旅店"
+    },
+    {
+      "atMs": 783790,
+      "action": "第 14 轮：倍速、♧ 人物关系"
+    },
+    {
+      "atMs": 839709,
+      "action": "第 15 轮：倍速、☷ 事件记录"
+    },
+    {
+      "atMs": 895725,
+      "action": "第 16 轮：倍速、♜ 经营旅店、保存载入"
+    },
+    {
+      "atMs": 900905,
+      "action": "第 17 轮：倍速、♧ 人物关系"
+    }
+  ],
+  "failure": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  - 1\u001b[39m\n\u001b[31m+ Received  + 3\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"Failed to load resource: the server responded with a status of 404 (Not Found)\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+  "finished": "2026-11-06T21:09:01.479Z",
+  "elapsedMs": 900977
+}
