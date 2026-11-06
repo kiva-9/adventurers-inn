@@ -342,3 +342,99 @@ describe('真实经历和个人目标参与决定', () => {
 
 
 it('损坏的普通或居民委托路径不能载入，合法行走快照仍可恢复',()=>{const w=createWorld(101);advance(w,9*1440+16*60);const traveller=w.npc.find(n=>n.destination&&n.route&&n.route.length>1);expect(traveller).toBeDefined();expect(validateWorld(w)).toBe(true);const broken=structuredClone(w);broken.npc.find(n=>n.id===traveller!.id)!.route=[];expect(validateWorld(broken)).toBe(false);const jump=structuredClone(w);jump.npc.find(n=>n.id===traveller!.id)!.route![0]={x:29,y:15};expect(validateWorld(jump)).toBe(false)});
+
+
+describe('评议后继续经营', () => {
+  const normalFailure=()=>{const w=createWorld(101);advance(w,30*1440-480);expect(w.chapter).toBe('失败');return w;};
+  const normalSuccess=()=>{
+    const w=createWorld(101);command(w,{type:'travel',place:'guild'});expect(command(w,{type:'quest',id:'q0'})).toBe(true);advance(w,4320);
+    command(w,{type:'travel',place:'guild'});expect(command(w,{type:'quest',id:'q1'})).toBe(true);
+    for(let i=0;i<6&&w.quests[1].status==='进行中';i++){
+      if(w.food<2){command(w,{type:'travel',place:'market'});expect(command(w,{type:'buy',item:'food',amount:10})).toBe(true)}
+      command(w,{type:'travel',place:'guild'});
+      const members=w.npc.filter(n=>!n.away&&n.health>=50&&n.fatigue<=85).sort((a,b)=>Number(b.skill==='探索')-Number(a.skill==='探索')).slice(0,3).map(n=>n.id);
+      expect(command(w,{type:'expedition',region:'森林',members,supply:2,strategy:'谨慎'})).toBe(true);
+      advance(w,90);command(w,{type:'choice',choice:'继续'});advance(w,90);
+    }
+    expect(w.quests[1].status).toBe('完成');while(w.chapter==='进行中')advance(w,60);
+    expect(w.chapter).toBe('守望相助');return w;
+  };
+
+  it('正常新游戏失败后从次日续营至90日，历史评议不变且快照可重现', () => {
+    const w=normalFailure();const outcome=w.chapter,reason=w.endingReason;
+    expect(w.day).toBe(30);expect(w.minute).toBe(0);expect(w.chapterDay).toBe(30);
+    expect(command(w,{type:'continue'})).toBe(true);expect(w.continued).toBe(true);expect(w.day).toBe(31);expect(w.paused).toBe(true);
+    expect(w.quests.filter(q=>q.recurring).map(q=>q.kind)).toContain('采购');
+    const ids=w.quests.map(q=>q.id);expect(command(w,{type:'continue'})).toBe(false);expect(w.day).toBe(31);expect(w.quests.map(q=>q.id)).toEqual(ids);
+    advance(w,59*1440);expect(w.day).toBe(90);expect(w.chapter).toBe(outcome);expect(w.endingReason).toBe(reason);expect(w.chapterDay).toBe(30);
+    expect(validateWorld(w)).toBe(true);expect(w.quests.length).toBeLessThanOrEqual(6);expect(w.questHistory!.length).toBeLessThanOrEqual(40);
+    expect(w.questHistory!.some(q=>q.status==='他人完成'||q.status==='他人失败')).toBe(true);
+    expect(w.events.length).toBeLessThanOrEqual(400);expect(w.npc.every(n=>n.memories.length<=30)).toBe(true);
+    const restored=JSON.parse(JSON.stringify(w));expect(validateWorld(restored)).toBe(true);
+    advance(w,10*1440);advance(restored,10*1440);expect(restored).toEqual(w);expect(w.day).toBe(100);
+    expect(w.events.filter(e=>e.kind==='结局')).toHaveLength(1);
+  });
+
+  it('正常成功评议也可继续，旧版缺少 continued 和 chapterDay 时仍可载入', () => {
+    const w=normalSuccess(), reason=w.endingReason;const old=JSON.parse(JSON.stringify(w));delete old.continued;delete old.chapterDay;
+    expect(validateWorld(old)).toBe(true);expect(command(old,{type:'continue'})).toBe(true);
+    expect(old.chapterDay).toBe(30);expect(old.day).toBe(31);expect(old.chapter).toBe('守望相助');
+    advance(old,2*1440);expect(old.day).toBe(33);expect(old.chapter).toBe('守望相助');expect(old.endingReason).toBe(reason);expect(validateWorld(old)).toBe(true);
+  });
+
+  it('周期采购真实消耗草药并只结算一次，五日后归档并发布新委托', () => {
+    const w=normalFailure();command(w,{type:'continue'});command(w,{type:'travel',place:'guild'});
+    const q=w.quests.find(q=>q.recurring&&q.kind==='采购')!;const startGold=w.gold,startHerbs=w.herbs;
+    expect(q.deadline-q.availableDay).toBe(4);expect(startHerbs).toBeGreaterThanOrEqual(4);
+    expect(command(w,{type:'quest',id:q.id})).toBe(true);expect(w.herbs).toBe(startHerbs-4);expect(w.gold).toBe(startGold+q.reward);
+    expect(command(w,{type:'quest',id:q.id})).toBe(false);expect(w.gold).toBe(startGold+q.reward);
+    const saved=JSON.parse(JSON.stringify(w));expect(validateWorld(saved)).toBe(true);
+    advance(w,5*1440);advance(saved,5*1440);expect(saved).toEqual(w);
+    expect(w.questHistory!.some(old=>old.id===q.id&&old.status==='完成')).toBe(true);
+    expect(w.quests.some(next=>next.recurring&&next.kind==='采购'&&next.id!==q.id)).toBe(true);
+  });
+
+  it('周期远征委托使用真实队伍、补给、途中抉择与一次归来结算', () => {
+    const w=normalFailure();command(w,{type:'continue'});const q=w.quests.find(q=>q.recurring&&q.kind!=='采购')!;
+    expect(q.kind).toBe('调查');command(w,{type:'travel',place:'market'});expect(command(w,{type:'buy',item:'food',amount:5})).toBe(true);
+    command(w,{type:'travel',place:'guild'});expect(command(w,{type:'quest',id:q.id})).toBe(true);
+    const members=w.npc.filter(n=>!n.away&&n.health>=50&&n.fatigue<=85).slice(0,3).map(n=>n.id), food=w.food;
+    expect(command(w,{type:'expedition',region:'森林',members,supply:3,strategy:'谨慎'})).toBe(true);expect(w.food).toBe(food-3);
+    advance(w,90);expect(command(w,{type:'choice',choice:'继续'})).toBe(true);advance(w,90);
+    expect(q.status).toBe('完成');const events=w.events.filter(e=>e.kind==='委托'&&e.text.includes(`完成「${q.title}」`));expect(events).toHaveLength(1);
+    advance(w,180);expect(w.events.filter(e=>e.kind==='委托'&&e.text.includes(`完成「${q.title}」`))).toHaveLength(1);
+  });
+
+  it('短工提供有限的合法困境恢复，耗时和冷却保存在快照中', () => {
+    const w=normalFailure();command(w,{type:'continue'});w.gold=0;w.food=0;command(w,{type:'travel',place:'guild'});
+    const tick=w.tick,income=w.income;expect(command(w,{type:'guildWork'})).toBe(true);
+    expect(w.tick-tick).toBe(120);expect(w.gold).toBeGreaterThanOrEqual(12);expect(w.income-income).toBeGreaterThanOrEqual(12);expect(w.lastGuildWorkDay).toBe(31);
+    const gold=w.gold;expect(command(w,{type:'guildWork'})).toBe(false);expect(w.gold).toBe(gold);
+    const saved=JSON.parse(JSON.stringify(w));expect(validateWorld(saved)).toBe(true);expect(command(saved,{type:'guildWork'})).toBe(false);
+    advance(w,1440-120);expect(w.day).toBe(32);expect(command(w,{type:'guildWork'})).toBe(true);expect(w.lastGuildWorkDay).toBe(32);
+  });
+
+  it('短工跨午夜按完成时间入账，遇新危机中断不获得报酬', () => {
+    const w=normalFailure();command(w,{type:'continue'});command(w,{type:'travel',place:'guild'});w.minute=1380;
+    const tick=w.tick;expect(command(w,{type:'guildWork'})).toBe(true);expect(w.tick-tick).toBe(120);expect(w.day).toBe(32);expect(w.minute).toBe(60);expect(w.dailyIncome).toBeGreaterThanOrEqual(12);expect(w.lastGuildWorkDay).toBe(31);
+    const interrupted=normalFailure();command(interrupted,{type:'continue'});command(interrupted,{type:'travel',place:'guild'});
+    interrupted.day=12;interrupted.minute=420;interrupted.supplyCrisis={status:'未开始'};interrupted.lastRecurringDay=12;
+    const before=interrupted.income;expect(command(interrupted,{type:'guildWork'})).toBe(true);
+    expect(interrupted.supplyCrisis.status).toBe('开放');expect(interrupted.minute).toBe(480);
+    expect(interrupted.events.some(e=>e.kind==='短工'&&e.text.includes('中断'))).toBe(true);
+    expect(interrupted.income).toBe(before);expect(command(interrupted,{type:'guildWork'})).toBe(false);
+  });
+});
+
+it('提前经营失败在日结后继续从次日开始且原危机仍可发生', () => {
+  const w=createWorld(12);w.day=8;w.minute=1439;w.gold=0;w.food=0;
+  advance(w,1);expect(w.chapter).toBe('失败');expect(w.chapterDay).toBe(8);expect(w.minute).toBe(0);
+  expect(command(w,{type:'continue'})).toBe(true);expect(w.day).toBe(9);expect(w.minute).toBe(0);
+  advance(w,3*1440+480);expect(w.day).toBe(12);expect(w.supplyCrisis?.status).toBe('开放');expect(w.chapter).toBe('失败');expect(validateWorld(w)).toBe(true);
+});
+
+it('正常新游戏续营至第1000日时，记录与周期委托仍受上限约束', () => {
+  const w=createWorld(101);advance(w,30*1440-480);expect(command(w,{type:'continue'})).toBe(true);
+  advance(w,969*1440);expect(w.day).toBe(1000);expect(w.questHistory).toHaveLength(40);expect(w.quests.length).toBeLessThanOrEqual(6);
+  expect(w.events).toHaveLength(400);expect(w.npc.every(n=>n.memories.length<=30)).toBe(true);expect(validateWorld(w)).toBe(true);
+});
