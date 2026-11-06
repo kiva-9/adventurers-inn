@@ -1,10 +1,10 @@
 import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture, type Ticker } from 'pixi.js';
 import type { NPC, Place, World } from './types';
 import { SQUARE_DOORS } from './scene-transitions';
-import { activityOf, nightOpacity, type Activity } from './animation';
+import { activityOf, nightOpacity, planVisualMovement, sampleVisualPath, type Activity, type VisualPoint } from './animation';
 
 const TILE=32, COLS=31, ROWS=17;
-interface ActorView { sprite:Sprite; name:Text; icon:Graphics; row:number; direction:number; frame:number; activity:Activity; phase:number; visible:boolean; x:number; y:number; fromX:number; fromY:number; toX:number; toY:number; progress:number; duration:number; player:boolean }
+interface ActorView { sprite:Sprite; name:Text; icon:Graphics; row:number; direction:number; frame:number; activity:Activity; phase:number; visible:boolean; x:number; y:number; toX:number; toY:number; progress:number; duration:number; path:VisualPoint[]; segment:number; previousRoute?:readonly VisualPoint[]; player:boolean }
 /** The simulation owns coordinates; this class only paints its snapshots. */
 export class WorldRenderer {
  private app:Application|null=null; private scene=new Container(); private actors=new Container(); private lights=new Container();
@@ -96,22 +96,28 @@ export class WorldRenderer {
   }
   g.visible=activity!=='idle';
  }
- private actor(id:string,row:number,x:number,y:number,activity:Activity,player=false){
+ private actor(id:string,row:number,x:number,y:number,activity:Activity,player=false,route?:readonly VisualPoint[]){
   if(!this.peopleSheet)return;let v=this.views.get(id);const tx=x*TILE,ty=y*TILE;
   if(!v){
    const sprite=new Sprite(this.texture(this.peopleSheet,0,(row%14)*TILE));
    const name=new Text({text:player?'你':id,style:{fontFamily:'Microsoft YaHei, sans-serif',fontSize:11,fill:0xfff6d9,stroke:{color:0x1d2823,width:3}}});
    const icon=new Graphics();this.actors.addChild(sprite,name,icon);
-   v={sprite,name,icon,row,direction:0,frame:0,activity:'idle',phase:(row*173)%1200,visible:true,x:tx,y:ty,fromX:tx,fromY:ty,toX:tx,toY:ty,progress:1,duration:180,player};this.views.set(id,v);
+   v={sprite,name,icon,row,direction:0,frame:0,activity:'idle',phase:(row*173)%1200,visible:true,x:tx,y:ty,toX:tx,toY:ty,progress:1,duration:180,path:[],segment:0,previousRoute:route,player};this.views.set(id,v);
   }
-  const dx=tx-v.toX,dy=ty-v.toY;
-  if(dx||dy){
-   if(Math.abs(dx)>Math.abs(dy))v.direction=dx<0?1:2;else if(dy)v.direction=dy<0?3:0;
-   const distance=Math.abs(tx-v.x)+Math.abs(ty-v.y);
-   if(!v.visible||distance>3*TILE){v.x=tx;v.y=ty;v.fromX=tx;v.fromY=ty;v.progress=1;}
-   else{v.fromX=v.x;v.fromY=v.y;v.progress=0;v.duration=player?180:Math.min(340,Math.max(130,distance*5));}
+  if(!v.visible||tx!==v.toX||ty!==v.toY){
+   const remaining=v.progress<1?v.path.slice(v.segment+1):[];
+   const plan=planVisualMovement({visible:v.visible,current:{x:v.x/TILE,y:v.y/TILE},previousTarget:{x:v.toX/TILE,y:v.toY/TILE},target:{x,y},remaining,previousRoute:v.previousRoute});
+   if(plan.kind==='snap'){
+    v.x=tx;v.y=ty;v.progress=1;v.path=[];v.segment=0;
+    // Set immediately, before the next render, even when the logical target did not change.
+    v.sprite.x=tx;v.sprite.y=ty;v.name.x=tx;v.name.y=ty-10-(player?10:(row%2)*10);v.icon.x=tx+22;v.icon.y=ty-13;
+    if(!v.visible){v.direction=0;v.frame=0;v.sprite.texture=this.texture(this.peopleSheet,0,(row%14)*TILE);}
+   }else if(plan.kind==='animate'){
+    v.path=plan.points;v.segment=0;v.progress=0;v.duration=player?180:240;
+   }
    v.toX=tx;v.toY=ty;
   }
+  v.previousRoute=route;
   v.visible=true;v.sprite.visible=true;v.name.visible=true;this.drawActivity(v,activity);v.icon.visible=activity!=='idle';
  }
  private animate=(ticker:Ticker)=>{
@@ -123,7 +129,10 @@ export class WorldRenderer {
   if(this.flames.length){const frame=Math.floor(this.elapsed/180)%this.flames.length;for(let i=0;i<this.flames.length;i++)this.flames[i].visible=i===frame;}
   for(const v of this.views.values()){
    if(!v.visible)continue;
-   if(v.progress<1){v.progress=Math.min(1,v.progress+dt/v.duration);v.x=v.fromX+(v.toX-v.fromX)*v.progress;v.y=v.fromY+(v.toY-v.fromY)*v.progress;}
+   if(v.progress<1){
+    v.progress=Math.min(1,v.progress+dt/v.duration);const point=sampleVisualPath(v.path,v.progress);v.x=point.x*TILE;v.y=point.y*TILE;v.segment=point.segment;
+    if(Math.abs(point.dx)>Math.abs(point.dy))v.direction=point.dx<0?1:2;else if(point.dy)v.direction=point.dy<0?3:0;
+   }
    const moving=v.progress<1;
    const idleBob=Math.floor((this.elapsed+v.phase)/820)%2;
    const bodyBob=moving?0:(v.activity==='rest'?0:idleBob);
@@ -145,7 +154,7 @@ export class WorldRenderer {
   if(changedScene)for(const v of this.views.values())v.visible=false;
   this.paused=world.paused;this.targetNight=nightOpacity(world.minute);
   const visible=new Set<string>(['__player']);this.actor('__player',13,world.player.x,world.player.y,'idle',true);
-  world.npc.forEach((n:NPC,i:number)=>{if(!n.away&&n.place===world.player.place){visible.add(n.name);this.actor(n.name,i,n.x,n.y,activityOf(n));}});
+  world.npc.forEach((n:NPC,i:number)=>{if(!n.away&&n.place===world.player.place){visible.add(n.name);this.actor(n.name,i,n.x,n.y,activityOf(n),false,n.route);}});
   for(const [id,v] of this.views)if(!visible.has(id)){v.visible=false;v.sprite.visible=false;v.name.visible=false;v.icon.visible=false;}
  }
  destroy(){

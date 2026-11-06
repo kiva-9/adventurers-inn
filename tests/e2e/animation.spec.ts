@@ -59,3 +59,48 @@ test('暂停的角色和灯火仍有独立动画，正常走动且不产生 Pixi
  await expect.poll(async()=>colorsIn(page,await page.screenshot({clip:scene})),{timeout:10_000}).toBeGreaterThan(10);
  expect(errors).toEqual([]);
 });
+
+test('浏览器合成快照：4× 多格路线连续插值，换场景立即定位',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/');
+ // This isolated renderer fixture supplies two synthetic snapshots; it never touches the game's Worker or save.
+ await page.evaluate(async()=>{
+  document.body.innerHTML='<div id="visual-fixture"></div>';
+  const rendererPath='/src/renderer.ts',enginePath='/src/engine.ts';
+  const {WorldRenderer}=await import(rendererPath),{createWorld}=await import(enginePath);
+  const world=createWorld(7),npc=world.npc[0];
+  world.npc=[npc];world.player={place:'inn',x:25,y:14};world.speed=4;world.paused=true;
+  npc.place='inn';npc.away=false;npc.x=2;npc.y=8;npc.action='在镇上走动';
+  npc.route=Array.from({length:12},(_,i)=>({x:3+i,y:8}));
+  const renderer=new WorldRenderer();await renderer.mount(document.getElementById('visual-fixture')!);renderer.update(world);
+  (window as any).__visualFixture={renderer,world,npc};
+ });
+ await expect(page.locator('#visual-fixture canvas')).toBeVisible();await page.waitForTimeout(100);
+ await page.locator('#visual-fixture canvas').screenshot({path:'docs/evidence/animation-npc-before.png'});
+ const start=await page.evaluate(()=>{
+  const f=(window as any).__visualFixture;f.npc.x=14;f.npc.route=[];f.renderer.update(f.world);
+  return f.renderer.views.get(f.npc.name).sprite.x;
+ });
+ expect(start).toBe(2*32);
+ await page.waitForTimeout(85);
+ const mid=await page.evaluate(()=>(window as any).__visualFixture.renderer.views.get((window as any).__visualFixture.npc.name).sprite.x);
+ await page.locator('#visual-fixture canvas').screenshot({path:'docs/evidence/animation-npc-mid.png'});
+ expect(mid).toBeGreaterThan(start);expect(mid).toBeLessThan(14*32);
+ await page.waitForTimeout(300);
+ const end=await page.evaluate(()=>(window as any).__visualFixture.renderer.views.get((window as any).__visualFixture.npc.name).sprite.x);
+ await page.locator('#visual-fixture canvas').screenshot({path:'docs/evidence/animation-npc-end.png'});
+ expect(end).toBe(14*32);
+ console.log('合成 4× 快照：角色横坐标',start,mid,end);
+ // Equal old and new targets: force a scene change before the current interpolation finishes.
+ const sceneReset=await page.evaluate(()=>{
+  const f=(window as any).__visualFixture,w=f.world,r=f.renderer;
+  w.player.x=3;w.player.y=10;r.update(w);
+  w.player.x=4;r.update(w);
+  w.player.place='guild';r.update(w);
+  const view=r.views.get('__player');return {x:view.sprite.x,y:view.sprite.y,progress:view.progress};
+ });
+ expect(sceneReset).toEqual({x:4*32,y:10*32,progress:1});
+ await page.locator('#visual-fixture canvas').screenshot({path:'docs/evidence/animation-scene-reset.png'});
+ expect(errors).toEqual([]);
+ await page.evaluate(()=>{(window as any).__visualFixture.renderer.destroy();delete (window as any).__visualFixture;});
+});
