@@ -32,3 +32,9 @@
 ## 首次远端克隆验证
 
 已从私有远端在新的临时目录克隆提交 `90a9107b7cecd6e44ec5d7b2c74c17b9f7e7645e`，`npm ci`、`npm run typecheck`、`npm test`、`npm run build` 均成功。该克隆的构建产物通过 `npm run preview -- --port 5198 --strictPort` 启动，使用真实浏览器完成新游戏、移动、手动保存、刷新与载入；1 项通过。该次是碰撞和 favicon 修复之前的提交，最终提交仍需新克隆复核。
+
+### 供给危机独立验证
+
+- 在基于 `7d9d098` 的独立工作树中新增一次性事件。`npx vitest run tests/supply-crisis.test.ts`：5 项通过，覆盖两种物资交付、库存不足、保留/逾期、重复操作、等待中断和存档恢复。专项测试已纳入 `npm test`。
+- 隔离端口 5195 的 Chrome 浏览器测试：新增 `tests/e2e/supply-crisis.spec.ts` 两项通过；既有 `game.spec.ts` 与 `chapter.spec.ts` 共三项通过。首次专项运行有一次测试定位器同时匹配两处文字，收窄后复跑通过。截图 [supply-crisis.png](evidence/supply-crisis.png) 已目视检查。
+- `npm run validate:crisis` 以正常命令推进，测试商会、守望者和不回应三种选择，各配守望/商路两种策略，种子 101、202、303、404、505、606、707、808 及新留出 9917、12041，共 60 局。六组各 10 局均取得各自路线结局、无失败命令；不回应均在第 15 日自动保留。结果逐局见 [supply-crisis-sim.jsonl](evidence/supply-crisis-sim.jsonl)。这验证原成功路线在这些种子上仍可走通，不代表对全部种子或其他策略的平衡结论。
