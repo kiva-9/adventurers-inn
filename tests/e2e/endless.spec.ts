@@ -33,6 +33,9 @@ test('失败评议后继续经营、保存载入和公会短工',async({page})=>
  await page.locator('.modal .card').filter({has:page.getByRole('heading',{name:'冒险者公会'})}).getByRole('button',{name:'前往'}).click();
  await page.getByRole('button',{name:'▤ 委托告示'}).click();
  await expect(page.getByText('公会会持续发布新委托',{exact:false})).toBeVisible();
+ await expect(page.locator('.modal-body .tag').filter({hasText:'周期委托'})).toHaveCount(2);
+ await expect(page.locator('.modal-body .card').filter({hasText:'周期委托'}).first()).toContainText('截止第 35 日');
+ await page.screenshot({path:'docs/evidence/endless-contracts.png'});
  const work=page.getByRole('button',{name:'做公会短工（120 分钟，12 金）'});
  await expect(work).toBeEnabled();
  const gold=page.locator('.topbar .stat').nth(1);
@@ -62,5 +65,10 @@ test('失败评议后继续经营、保存载入和公会短工',async({page})=>
  await page.getByRole('button',{name:'取消',exact:true}).click();
  await expect(page.locator('.topbar .stat').first()).toContainText('第 32 日');
  await page.screenshot({path:'docs/evidence/endless-history.png'});
+ await page.getByRole('button',{name:'关闭',exact:true}).click();
+ while(Number((await page.locator('.topbar .stat').first().innerText()).match(/第\s*(\d+)/)?.[1])<37) await waitMorning(page);
+ await page.getByRole('button',{name:'▤ 委托告示'}).click();
+ await expect(page.getByRole('heading',{name:'近期周期委托记录'})).toBeVisible();
+ await expect(page.locator('.modal-body .tag').filter({hasText:'周期委托'})).toHaveCount(2);
  expect(errors).toEqual([]);
 });
