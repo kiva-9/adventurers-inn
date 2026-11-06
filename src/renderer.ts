@@ -1,24 +1,35 @@
-import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Rectangle, Sprite, Text, Texture, type Ticker } from 'pixi.js';
 import type { NPC, Place, World } from './types';
 import { SQUARE_DOORS } from './scene-transitions';
+import { activityOf, nightOpacity, type Activity } from './animation';
 
 const TILE=32, COLS=31, ROWS=17;
+interface ActorView { sprite:Sprite; name:Text; icon:Graphics; row:number; direction:number; frame:number; activity:Activity; phase:number; visible:boolean; x:number; y:number; fromX:number; fromY:number; toX:number; toY:number; progress:number; duration:number; player:boolean }
 /** The simulation owns coordinates; this class only paints its snapshots. */
 export class WorldRenderer {
- private app:Application|null=null; private scene=new Container(); private actors=new Container(); private tileSheet:Texture|null=null; private peopleSheet:Texture|null=null; private buildings:Texture|null=null; private current:Place|null=null; private currentBeds=0; private sprites=new Map<string,Sprite>(); private names=new Map<string,Text>(); private previous=new Map<string,{x:number;y:number;direction:number}>(); private night=new Graphics().rect(0,0,COLS*TILE,ROWS*TILE).fill({color:0x182641,alpha:1}); private dead=false;
+ private app:Application|null=null; private scene=new Container(); private actors=new Container(); private lights=new Container();
+ private tileSheet:Texture|null=null; private peopleSheet:Texture|null=null; private buildings:Texture|null=null;
+ private current:Place|null=null; private currentBeds=0; private views=new Map<string,ActorView>();
+ private textureCache=new Map<string,Texture>(); private glows:Graphics[]=[]; private flames:Graphics[]=[];
+ private night=new Graphics().rect(0,0,COLS*TILE,ROWS*TILE).fill({color:0x182641,alpha:1});
+ private dead=false; private elapsed=0; private targetNight=0; private paused=true;
  async mount(host:HTMLElement){
   const app=new Application(); await app.init({width:COLS*TILE,height:ROWS*TILE,background:'#445d4b',antialias:false,preference:'webgl',resolution:1});
-  if(this.dead){app.destroy(true);return} this.app=app;app.canvas.setAttribute('aria-label','像素小镇游戏画面');host.prepend(app.canvas);app.stage.addChild(this.scene,this.actors,this.night);this.night.eventMode='none';
+  if(this.dead){app.destroy(true);return} this.app=app;app.canvas.setAttribute('aria-label','像素小镇游戏画面');host.prepend(app.canvas);app.stage.addChild(this.scene,this.actors,this.night,this.lights);this.night.eventMode='none';this.night.alpha=0;this.lights.eventMode='none';
   const [tiles,people,buildings]=await Promise.all([Assets.load('/assets/town-tiles.png'),Assets.load('/assets/people.png'),Assets.load('/assets/buildings.png')]);
   if(this.dead)return;this.tileSheet=tiles as Texture;this.peopleSheet=people as Texture;this.buildings=buildings as Texture;
   this.tileSheet.source.scaleMode='nearest';this.peopleSheet.source.scaleMode='nearest';this.buildings.source.scaleMode='nearest';
+  app.ticker.add(this.animate);
  }
- private texture(sheet:Texture,x:number,y:number,w=32,h=32){return new Texture({source:sheet.source,frame:new Rectangle(x,y,w,h)});}
+ private texture(sheet:Texture,x:number,y:number,w=32,h=32){
+  const prefix=sheet===this.tileSheet?'t':sheet===this.peopleSheet?'p':'b';const key=`${prefix}:${x}:${y}:${w}:${h}`;
+  let texture=this.textureCache.get(key);if(!texture){texture=new Texture({source:sheet.source,frame:new Rectangle(x,y,w,h)});this.textureCache.set(key,texture);}return texture;
+ }
  private tile(col:number,row:number,x:number,y:number){if(!this.tileSheet)return;const s=new Sprite(this.texture(this.tileSheet,col*TILE,row*TILE));s.x=x*TILE;s.y=y*TILE;this.scene.addChild(s);}
  private building(index:number,x:number,y:number){if(!this.buildings)return;const s=new Sprite(this.texture(this.buildings,index*96,0,96,96));s.x=x*TILE;s.y=y*TILE;this.scene.addChild(s);}
  private label(text:string,x:number,y:number){const t=new Text({text,style:{fontFamily:'Microsoft YaHei, sans-serif',fontSize:13,fill:0xffedc7,stroke:{color:0x342a24,width:3}}});t.x=x;t.y=y;this.scene.addChild(t);}
  private makeScene(place:Place,beds:number){
-  this.scene.removeChildren().forEach(c=>c.destroy());this.current=place;this.currentBeds=beds;
+  this.scene.removeChildren().forEach(c=>c.destroy());this.lights.removeChildren().forEach(c=>c.destroy());this.glows=[];this.flames=[];this.current=place;this.currentBeds=beds;
   // An intentionally compact, fixed grid. All scene art comes from local pixel atlases.
   const inside=place==='inn'||place==='guild'||place==='clinic';
   for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
@@ -50,19 +61,95 @@ export class WorldRenderer {
    if(place==='gate')this.label('通往旷野',14*32,6*32);
   }
   const shade=new Graphics().rect(0,0,COLS*TILE,ROWS*TILE).fill({color:0x182a26,alpha:.035});this.scene.addChild(shade);
+  // Small block-shaped lights are separate from the darkening layer and reused every frame.
+  if(place==='inn'){
+   for(const x of [4,10,19,26])this.addGlow(x,1);
+   for(const x of [12,21])this.addGlow(x,4);
+   this.addFire(27,4);
+  } else if(place==='guild'||place==='clinic') {
+   for(const x of (place==='clinic'?[4,9,14,19,24]:[6,12,18,24]))this.addGlow(x,1);
+  } else if(place==='gate') {this.addGlow(13,5);this.addGlow(18,5);}
+
  }
- private actor(id:string,row:number,x:number,y:number,action:string,tick:number,player=false){
-  if(!this.peopleSheet)return;let sprite=this.sprites.get(id);let name=this.names.get(id);const old=this.previous.get(id);let direction=old?.direction??0;
-  if(old){if(x<old.x)direction=1;else if(x>old.x)direction=2;else if(y<old.y)direction=3;else if(y>old.y)direction=0;}
-  const moving=old&&(old.x!==x||old.y!==y);const frame=direction*3+(moving?1+(tick%2):0);
-  const texture=this.texture(this.peopleSheet,frame*32,(row%14)*32);if(!sprite){sprite=new Sprite(texture);this.actors.addChild(sprite);this.sprites.set(id,sprite);name=new Text({text:id,style:{fontFamily:'Microsoft YaHei, sans-serif',fontSize:11,fill:0xfff6d9,stroke:{color:0x1d2823,width:3}}});this.names.set(id,name);this.actors.addChild(name);}else sprite.texture=texture;
-  sprite.x=x*TILE;sprite.y=y*TILE;name!.x=x*TILE;name!.y=y*TILE-10-(player?10:(row%2)*10);name!.text=player?'你':id;
-  sprite.alpha=action.includes('休息')?.85:1;this.previous.set(id,{x,y,direction});
+ private addGlow(x:number,y:number){
+  const g=new Graphics().rect(x*TILE+9,y*TILE+7,14,12).fill({color:0xffd27b,alpha:1});g.alpha=.05;this.glows.push(g);this.lights.addChild(g);
  }
- update(world:World){if(!this.tileSheet||!this.peopleSheet)return;if(this.current!==world.player.place||(world.player.place==='inn'&&this.currentBeds!==world.beds))this.makeScene(world.player.place,world.beds);const hour=world.minute/60;this.night.alpha=hour<5||hour>=21?.25:hour<7||hour>=19?.12:0;
-  const visible=new Set<string>(['__player']);this.actor('__player',13,world.player.x,world.player.y,'',world.tick,true);
-  world.npc.forEach((n:NPC,i:number)=>{if(!n.away&&n.place===world.player.place){visible.add(n.name);this.actor(n.name,i,n.x,n.y,n.action,world.tick)}});
-  for(const [id,s] of this.sprites){s.visible=visible.has(id);const name=this.names.get(id);if(name)name.visible=visible.has(id)}
+ private addFire(x:number,y:number){
+  for(let i=0;i<3;i++){
+   const g=new Graphics();
+   g.rect(x*TILE+10,y*TILE+16,12,8).fill(0xcf6741);
+   g.rect(x*TILE+12+(i===1?1:0),y*TILE+11+(i===2?2:0),7,11).fill(0xf5b45e);
+   g.rect(x*TILE+14+(i===2?1:0),y*TILE+17,4,6).fill(0xffe29c);
+   g.visible=i===0;this.flames.push(g);this.lights.addChild(g);
+  }
  }
- destroy(){this.dead=true;if(this.app){this.app.destroy(true,{children:true});this.app=null;}}
+ private drawActivity(v:ActorView,activity:Activity){
+  if(v.activity===activity)return;v.activity=activity;const g=v.icon;g.clear();
+  if(activity==='eat'){
+   g.rect(1,4,10,4).fill(0x553b2e).rect(2,3,8,3).fill(0xf1d59b).rect(4,2,4,2).fill(0xa95f40);
+  }else if(activity==='rest'){
+   g.rect(1,1,8,2).fill(0xf7e7bc).rect(6,3,3,2).fill(0xf7e7bc).rect(3,5,3,2).fill(0xf7e7bc).rect(1,7,8,2).fill(0xf7e7bc);
+  }else if(activity==='hurt'){
+   g.rect(0,0,10,10).fill(0xf5e4c3).rect(4,1,2,8).fill(0xb84d45).rect(1,4,8,2).fill(0xb84d45);
+  }else if(activity==='talk'){
+   g.rect(0,0,12,8).fill(0xf6e7c4).rect(2,8,3,2).fill(0xf6e7c4).rect(2,3,2,2).fill(0x765a45).rect(5,3,2,2).fill(0x765a45).rect(8,3,2,2).fill(0x765a45);
+  }
+  g.visible=activity!=='idle';
+ }
+ private actor(id:string,row:number,x:number,y:number,activity:Activity,player=false){
+  if(!this.peopleSheet)return;let v=this.views.get(id);const tx=x*TILE,ty=y*TILE;
+  if(!v){
+   const sprite=new Sprite(this.texture(this.peopleSheet,0,(row%14)*TILE));
+   const name=new Text({text:player?'你':id,style:{fontFamily:'Microsoft YaHei, sans-serif',fontSize:11,fill:0xfff6d9,stroke:{color:0x1d2823,width:3}}});
+   const icon=new Graphics();this.actors.addChild(sprite,name,icon);
+   v={sprite,name,icon,row,direction:0,frame:0,activity:'idle',phase:(row*173)%1200,visible:true,x:tx,y:ty,fromX:tx,fromY:ty,toX:tx,toY:ty,progress:1,duration:180,player};this.views.set(id,v);
+  }
+  const dx=tx-v.toX,dy=ty-v.toY;
+  if(dx||dy){
+   if(Math.abs(dx)>Math.abs(dy))v.direction=dx<0?1:2;else if(dy)v.direction=dy<0?3:0;
+   const distance=Math.abs(tx-v.x)+Math.abs(ty-v.y);
+   if(!v.visible||distance>3*TILE){v.x=tx;v.y=ty;v.fromX=tx;v.fromY=ty;v.progress=1;}
+   else{v.fromX=v.x;v.fromY=v.y;v.progress=0;v.duration=player?180:Math.min(340,Math.max(130,distance*5));}
+   v.toX=tx;v.toY=ty;
+  }
+  v.visible=true;v.sprite.visible=true;v.name.visible=true;this.drawActivity(v,activity);v.icon.visible=activity!=='idle';
+ }
+ private animate=(ticker:Ticker)=>{
+  if(this.dead||!this.peopleSheet)return;
+  const dt=Math.min(50,Math.max(0,ticker.deltaMS));this.elapsed+=dt;
+  // Time of day follows snapshots only; smoothing and all other motion are cosmetic.
+  this.night.alpha+=(this.targetNight-this.night.alpha)*Math.min(1,dt/450);
+  for(let i=0;i<this.glows.length;i++)this.glows[i].alpha=.05+this.night.alpha*.7+(.025*(1+Math.sin(this.elapsed/430+i*1.7)));
+  if(this.flames.length){const frame=Math.floor(this.elapsed/180)%this.flames.length;for(let i=0;i<this.flames.length;i++)this.flames[i].visible=i===frame;}
+  for(const v of this.views.values()){
+   if(!v.visible)continue;
+   if(v.progress<1){v.progress=Math.min(1,v.progress+dt/v.duration);v.x=v.fromX+(v.toX-v.fromX)*v.progress;v.y=v.fromY+(v.toY-v.fromY)*v.progress;}
+   const moving=v.progress<1;
+   const idleBob=Math.floor((this.elapsed+v.phase)/820)%2;
+   const bodyBob=moving?0:(v.activity==='rest'?0:idleBob);
+   let step=0;
+   if(moving)step=1+Math.floor((this.elapsed+v.phase)/120)%2;
+   else if(v.activity==='eat'&&!this.paused)step=Math.floor((this.elapsed+v.phase)/480)%2;
+   const frame=v.direction*3+step;
+   if(v.frame!==frame){v.sprite.texture=this.texture(this.peopleSheet,frame*TILE,(v.row%14)*TILE);v.frame=frame;}
+   const x=Math.round(v.x),y=Math.round(v.y);
+   v.sprite.x=x;v.sprite.y=y-bodyBob;v.name.x=x;v.name.y=y-10-(v.player?10:(v.row%2)*10);
+   v.icon.x=x+22;v.icon.y=y-13-(v.activity==='rest'?Math.floor((this.elapsed+v.phase)/550)%3:0);
+   v.icon.alpha=v.activity==='hurt'?.72+.28*(.5+.5*Math.sin((this.elapsed+v.phase)/350)):1;
+  }
+ };
+ update(world:World){
+  if(!this.tileSheet||!this.peopleSheet)return;
+  const changedScene=this.current!==world.player.place;
+  if(changedScene||(world.player.place==='inn'&&this.currentBeds!==world.beds))this.makeScene(world.player.place,world.beds);
+  if(changedScene)for(const v of this.views.values())v.visible=false;
+  this.paused=world.paused;this.targetNight=nightOpacity(world.minute);
+  const visible=new Set<string>(['__player']);this.actor('__player',13,world.player.x,world.player.y,'idle',true);
+  world.npc.forEach((n:NPC,i:number)=>{if(!n.away&&n.place===world.player.place){visible.add(n.name);this.actor(n.name,i,n.x,n.y,activityOf(n));}});
+  for(const [id,v] of this.views)if(!visible.has(id)){v.visible=false;v.sprite.visible=false;v.name.visible=false;v.icon.visible=false;}
+ }
+ destroy(){
+  this.dead=true;if(this.app){this.app.ticker.remove(this.animate);this.app.destroy(true,{children:true});this.app=null;}
+  for(const texture of this.textureCache.values())texture.destroy(false);this.textureCache.clear();this.views.clear();this.glows=[];this.flames=[];
+ }
 }
