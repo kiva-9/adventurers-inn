@@ -165,6 +165,9 @@ test('真实 UI：未达评议目标的失败和重新开始', async ({page}) =>
   await expect(endHeading(page)).toContainText('失败');
   console.log('失败结算：', (await page.locator('.modal-backdrop .modal-body').last().innerText()).slice(0,250));
   await page.screenshot({path:'docs/evidence/chapter-failure.png'});
+  // Read-only inspection waits for the browser's own transaction; reload and continue through UI.
+  await expect.poll(()=>page.evaluate(async()=>await new Promise<string|null>((resolve,reject)=>{const r=indexedDB.open('returning-inn-save-v1',1);r.onerror=()=>reject(r.error);r.onsuccess=()=>{const db=r.result;const tx=db.transaction('slots','readonly');const get=tx.objectStore('slots').get('auto');get.onsuccess=()=>{resolve(get.result?.chapter??null);db.close()};get.onerror=()=>reject(get.error)}}))).toBe('失败');
+  await page.reload();await page.getByRole('button',{name:'继续旅程'}).click();await expect(endHeading(page)).toContainText('失败');
   await page.getByRole('button',{name:'重新开始'}).click();
   await expect(endHeading(page)).toBeHidden();
   await expect(page.locator('.topbar .stat').first()).toContainText('第 1 / 30 日');

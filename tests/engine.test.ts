@@ -340,3 +340,5 @@ describe('真实经历和个人目标参与决定', () => {
   });
 });
 
+
+it('损坏的普通或居民委托路径不能载入，合法行走快照仍可恢复',()=>{const w=createWorld(101);advance(w,9*1440+16*60);const traveller=w.npc.find(n=>n.destination&&n.route&&n.route.length>1);expect(traveller).toBeDefined();expect(validateWorld(w)).toBe(true);const broken=structuredClone(w);broken.npc.find(n=>n.id===traveller!.id)!.route=[];expect(validateWorld(broken)).toBe(false);const jump=structuredClone(w);jump.npc.find(n=>n.id===traveller!.id)!.route![0]={x:29,y:15};expect(validateWorld(jump)).toBe(false)});
