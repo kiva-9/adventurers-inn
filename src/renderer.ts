@@ -158,6 +158,10 @@ export class WorldRenderer {
   world.npc.forEach((n:NPC,i:number)=>{if(!n.away&&n.place===world.player.place){visible.add(n.name);this.actor(n.name,i,n.x,n.y,activityOf(n),false,n.route);}});
   for(const [id,v] of this.views)if(!visible.has(id)){v.visible=false;v.sprite.visible=false;v.name.visible=false;v.icon.visible=false;}
  }
+ /** A new player command must wait until the visible sprite has reached the last acknowledged tile. */
+ isPlayerAt(player:World['player']):boolean{
+  const v=this.views.get('__player');return !!v&&v.visible&&this.current===player.place&&v.progress>=1&&v.toX===player.x*TILE&&v.toY===player.y*TILE;
+ }
  destroy(){
   this.dead=true;if(this.app){this.app.ticker.remove(this.animate);this.app.destroy(true,{children:true});this.app=null;}
   for(const texture of this.textureCache.values())texture.destroy(false);this.textureCache.clear();this.views.clear();this.glows=[];this.flames=[];

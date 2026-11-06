@@ -14,5 +14,5 @@ export type Command =
  | {type:'quest';id:string} | {type:'expedition';region:'森林'|'废矿'|'遗迹';members:string[];supply:number;strategy:'谨慎'|'冒险'} | {type:'choice';choice:'继续'|'折返'}
  | {type:'supplyCrisis';choice:'商会'|'守望者'|'保留'} | {type:'guildWork'}
  | {type:'waitUntil';target:'morning'|'expedition'} | {type:'repay';amount:number} | {type:'speed';speed:1|2|4} | {type:'pause';paused:boolean} | {type:'wait';minutes:number} | {type:'continue'};
-export type WorkerRequest = {type:'new';seed:number}|{type:'load';world:World}|{type:'command';command:Command}|{type:'snapshot'};
-export type WorkerResponse = {type:'snapshot';world:World}|{type:'error';message:string};
+export type WorkerRequest = {type:'new';seed:number}|{type:'load';world:World}|{type:'command';command:Command;requestId?:number}|{type:'snapshot'};
+export type WorkerResponse = {type:'snapshot';world:World;requestId?:number;accepted?:boolean}|{type:'error';message:string;requestId?:number};

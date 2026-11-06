@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Command, NPC, Place, WorkerRequest, WorkerResponse, World } from './types';
 import { WorldRenderer } from './renderer';
+import { MovementController } from './movement';
 import { doorDestination } from './scene-transitions';
 import { EnhancedDialogue } from './llm/adapter';
 import { validateWorld, recalledHelp, marketUnitPrices, helperAvailability } from './engine';
@@ -21,23 +22,54 @@ function App(){
  const [world,setWorld]=useState<World|null>(null), [panel,setPanel]=useState<Panel>(null),[person,setPerson]=useState<string>(''),[notice,setNotice]=useState(''),[region,setRegion]=useState<'森林'|'废矿'|'遗迹'>('森林'),[strategy,setStrategy]=useState<'谨慎'|'冒险'>('谨慎'),[members,setMembers]=useState<string[]>([]),[supply,setSupply]=useState(3),[volume,setVolume]=useState(0.3),[showDebug,setShowDebug]=useState(false),[autoExists,setAutoExists]=useState(false),[importError,setImportError]=useState(''),[llmEnabled,setLlmEnabled]=useState(false),[llmInput,setLlmInput]=useState(''),[llmReply,setLlmReply]=useState(''),[suggested,setSuggested]=useState<string|null>(null),[llmBusy,setLlmBusy]=useState(false),[restartPending,setRestartPending]=useState(false);
  const worker=useRef<Worker|null>(null), canvasHost=useRef<HTMLDivElement|null>(null), renderer=useRef<WorldRenderer|null>(null), latest=useRef<World|null>(null), lastAutoKey=useRef(''), autoQueue=useRef<Promise<void>>(Promise.resolve()), fileInput=useRef<HTMLInputElement|null>(null), enhanced=useRef(new EnhancedDialogue()), audio=useRef<AudioContext|null>(null), volumeRef=useRef(volume), lastMessage=useRef(''), saveOnPause=useRef(false);
  const send=useCallback((request:WorkerRequest)=>worker.current?.postMessage(request),[]);
+ const panelRef=useRef<Panel>(null), movement=useRef<MovementController|null>(null), movementFrame=useRef<number|null>(null), interactRef=useRef<()=>void>(()=>{});
+ if(!movement.current)movement.current=new MovementController((direction,requestId)=>send({type:'command',command:{type:'move',dx:direction[0],dy:direction[1]},requestId}),()=>interactRef.current());
+ const scheduleMovement=useCallback(()=>{
+  if(movementFrame.current!==null)return;
+  const frame=(now:number)=>{movementFrame.current=null;const w=latest.current,c=movement.current;
+   if(!w||!c||panelRef.current||document.hidden||(w.chapter!=='进行中'&&!continued(w))){c?.cancel();return;}
+   c.tick(now,renderer.current?.isPlayerAt(w.player)??false);
+   if(c.wantsFrame)movementFrame.current=requestAnimationFrame(frame);
+  };
+  movementFrame.current=requestAnimationFrame(frame);
+ },[]);
  const queueAuto=useCallback((snapshot:World)=>{const next=autoQueue.current.catch(()=>{}).then(()=>writeSlot('auto',snapshot));autoQueue.current=next;void next.then(()=>setAutoExists(true)).catch(()=>setNotice('自动存档失败，请检查浏览器存储权限。'));},[]);
  const command=useCallback((cmd:Command)=>{send({type:'command',command:cmd}); if(volumeRef.current>0 && ['buy','talk','travel','choice'].includes(cmd.type)){try{const ac=audio.current??new AudioContext();audio.current=ac;void ac.resume();const osc=ac.createOscillator(), gain=ac.createGain();osc.type='triangle';osc.frequency.value=cmd.type==='buy'?660:cmd.type==='travel'?220:440;gain.gain.setValueAtTime(volumeRef.current*.08,ac.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.1);osc.connect(gain).connect(ac.destination);osc.start();osc.stop(ac.currentTime+.1);}catch{/* sound is optional */}}},[send]);
- useEffect(()=>{const w=new Worker(new URL('./worker.ts',import.meta.url),{type:'module'});worker.current=w;w.onmessage=(e:MessageEvent<WorkerResponse>)=>{if(e.data.type==='snapshot'){const snapshot=e.data.world;latest.current=snapshot;setWorld(snapshot);const key=[snapshot.day,snapshot.chapter,continued(snapshot),(snapshot as EndlessWorld).lastGuildWorkDay,snapshot.supplyCrisis?.status,snapshot.quests.map(q=>q.status).join(','),snapshot.expedition?.id,snapshot.expedition?.phase,snapshot.npcContract?.npcId,snapshot.npcContract?.phase].join(':');if(key!==lastAutoKey.current){lastAutoKey.current=key;queueAuto(snapshot)}if(saveOnPause.current&&snapshot.paused){saveOnPause.current=false;queueAuto(snapshot);}}else setNotice(e.data.message)};w.onerror=(e)=>setNotice(`模拟发生错误：${e.message}`);readSlot('auto').then(x=>setAutoExists(!!x)).catch(()=>{});return()=>{w.terminate();worker.current=null;};},[queueAuto]);
+ useEffect(()=>{const w=new Worker(new URL('./worker.ts',import.meta.url),{type:'module'});worker.current=w;w.onmessage=(e:MessageEvent<WorkerResponse>)=>{if(e.data.type==='snapshot'){const snapshot=e.data.world;latest.current=snapshot;renderer.current?.update(snapshot);movement.current?.acknowledge(e.data.requestId,e.data.accepted!==false);if(e.data.requestId!==undefined&&e.data.accepted===false)setNotice(snapshot.lastMessage);if(movement.current?.wantsFrame)scheduleMovement();setWorld(snapshot);const key=[snapshot.day,snapshot.chapter,continued(snapshot),(snapshot as EndlessWorld).lastGuildWorkDay,snapshot.supplyCrisis?.status,snapshot.quests.map(q=>q.status).join(','),snapshot.expedition?.id,snapshot.expedition?.phase,snapshot.npcContract?.npcId,snapshot.npcContract?.phase].join(':');if(key!==lastAutoKey.current){lastAutoKey.current=key;queueAuto(snapshot)}if(saveOnPause.current&&snapshot.paused){saveOnPause.current=false;queueAuto(snapshot);}}else{movement.current?.acknowledge(e.data.requestId,false);if(movement.current?.wantsFrame)scheduleMovement();setNotice(e.data.message)}};w.onerror=(e)=>{movement.current?.reset();setNotice(`模拟发生错误：${e.message}`)};readSlot('auto').then(x=>setAutoExists(!!x)).catch(()=>{});return()=>{w.terminate();worker.current=null;movement.current?.reset();if(movementFrame.current!==null)cancelAnimationFrame(movementFrame.current);movementFrame.current=null;};},[queueAuto,scheduleMovement]);
  useEffect(()=>{if(!world||!canvasHost.current)return;let active=true;const r=new WorldRenderer();renderer.current=r;r.mount(canvasHost.current).then(()=>{if(active && latest.current)r.update(latest.current)}).catch(e=>setNotice(`画面初始化失败：${String(e)}`));return()=>{active=false;r.destroy();renderer.current=null}},[!!world]);
- useEffect(()=>{if(world){renderer.current?.update(world);if(world.lastMessage && world.lastMessage!==lastMessage.current){lastMessage.current=world.lastMessage;setNotice(world.lastMessage)}}},[world]);
+ useEffect(()=>{if(world){if(world.lastMessage && world.lastMessage!==lastMessage.current){lastMessage.current=world.lastMessage;setNotice(world.lastMessage)}}},[world]);
  useEffect(()=>{volumeRef.current=volume},[volume]);
  useEffect(()=>{enhanced.current.invalidate();setLlmReply('');setSuggested(null)},[world?.player.place,person]);
- useEffect(()=>{const onVisibility=()=>{if(document.hidden&&latest.current){saveOnPause.current=true;command({type:'pause',paused:true});}else if(!document.hidden&&latest.current)setNotice('页面恢复，游戏已暂停。请在准备好后继续。');};document.addEventListener('visibilitychange',onVisibility);return()=>document.removeEventListener('visibilitychange',onVisibility);},[command]);
+ useEffect(()=>{const onVisibility=()=>{if(document.hidden&&latest.current){movement.current?.cancel();saveOnPause.current=true;command({type:'pause',paused:true});}else if(!document.hidden&&latest.current)setNotice('页面恢复，游戏已暂停。请在准备好后继续。');};document.addEventListener('visibilitychange',onVisibility);return()=>document.removeEventListener('visibilitychange',onVisibility);},[command]);
  useEffect(()=>{if(!notice)return;const id=setTimeout(()=>setNotice(''),4500);return()=>clearTimeout(id)},[notice]);
- const open=(p:Panel)=>{if(world&&!world.paused)command({type:'pause',paused:true});setPanel(p)};
- const close=()=>setPanel(null);
- useEffect(()=>{const onKey=(e:KeyboardEvent)=>{if(!latest.current || (e.repeat&&!['w','a','s','d','ArrowUp','ArrowLeft','ArrowDown','ArrowRight'].includes(e.key)) || e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement)return;if(e.key==='Escape'){setPanel(null);return}if(panel)return;const dirs:Record<string,[number,number]>={w:[0,-1],a:[-1,0],s:[0,1],d:[1,0],ArrowUp:[0,-1],ArrowLeft:[-1,0],ArrowDown:[0,1],ArrowRight:[1,0]};const dir=dirs[e.key];if(dir){e.preventDefault();command({type:'move',dx:dir[0],dy:dir[1]});}if(e.key.toLowerCase()==='e'){const door=doorDestination(latest.current.player.place,latest.current.player.x,latest.current.player.y);if(door){command({type:'travel',place:door});return}const here=latest.current.npc.filter(n=>n.place===latest.current?.player.place&&!n.away);const p=latest.current.player;here.sort((a,b)=>Math.abs(a.x-p.x)+Math.abs(a.y-p.y)-Math.abs(b.x-p.x)-Math.abs(b.y-p.y));if(here[0]&&Math.abs(here[0].x-p.x)+Math.abs(here[0].y-p.y)<=2){setPerson(here[0].id);open('person')}else setNotice('附近没有可以交谈的人。');}};window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey)},[panel,command,world]);
- const newGame=()=>{enhanced.current.reset();setRestartPending(false);setPanel(null);lastAutoKey.current='';saveOnPause.current=false;send({type:'new',seed:Math.floor(Date.now()%2147483647)||1})};
- const load=async(slot:string)=>{try{const v=await readSlot(slot);if(!v){setNotice('这个存档槽是空的。');return}if(!validateWorld(v)){setNotice('存档格式不受支持或已损坏。');return}enhanced.current.reset();lastAutoKey.current='';saveOnPause.current=false;send({type:'load',world:v});setPanel(null);setNotice('存档已载入。')}catch{setNotice('读取存档失败。')}};
+ const open=(p:Panel)=>{movement.current?.cancel();panelRef.current=p;if(world&&!world.paused)command({type:'pause',paused:true});setPanel(p)};
+ const close=()=>{panelRef.current=null;setPanel(null)};
+ interactRef.current=()=>{
+  const w=latest.current;if(!w||panelRef.current)return;
+  const door=doorDestination(w.player.place,w.player.x,w.player.y);if(door){command({type:'travel',place:door});return}
+  const here=w.npc.filter(n=>n.place===w.player.place&&!n.away);const p=w.player;
+  here.sort((a,b)=>Math.abs(a.x-p.x)+Math.abs(a.y-p.y)-Math.abs(b.x-p.x)-Math.abs(b.y-p.y));
+  if(here[0]&&Math.abs(here[0].x-p.x)+Math.abs(here[0].y-p.y)<=2){setPerson(here[0].id);open('person')}else setNotice('附近没有可以交谈的人。');
+ };
+ useEffect(()=>{
+  const dirs:Record<string,readonly [number,number]>={w:[0,-1],a:[-1,0],s:[0,1],d:[1,0],ArrowUp:[0,-1],ArrowLeft:[-1,0],ArrowDown:[0,1],ArrowRight:[1,0]};
+  const keyOf=(key:string)=>key.length===1?key.toLowerCase():key;
+  const down=(e:KeyboardEvent)=>{
+   if(!latest.current||e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement||e.target instanceof HTMLSelectElement||(e.target instanceof HTMLElement&&e.target.isContentEditable)||e.ctrlKey||e.altKey||e.metaKey)return;
+   if(e.key==='Escape'){panelRef.current=null;movement.current?.cancel();setPanel(null);return}if(panelRef.current)return;
+   const key=keyOf(e.key),dir=dirs[key];if(dir){e.preventDefault();movement.current?.press(key,dir,e.repeat);scheduleMovement();return}
+   if(key==='e'&&!e.repeat){movement.current?.requestInteraction();scheduleMovement();}
+  };
+  const up=(e:KeyboardEvent)=>movement.current?.release(keyOf(e.key));
+  const blur=()=>movement.current?.cancel();
+  window.addEventListener('keydown',down);window.addEventListener('keyup',up);window.addEventListener('blur',blur);
+  return()=>{window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('blur',blur);movement.current?.cancel();};
+ },[scheduleMovement]);
+ const newGame=()=>{movement.current?.reset();panelRef.current=null;enhanced.current.reset();setRestartPending(false);setPanel(null);lastAutoKey.current='';saveOnPause.current=false;send({type:'new',seed:Math.floor(Date.now()%2147483647)||1})};
+ const load=async(slot:string)=>{try{const v=await readSlot(slot);if(!v){setNotice('这个存档槽是空的。');return}if(!validateWorld(v)){setNotice('存档格式不受支持或已损坏。');return}movement.current?.reset();panelRef.current=null;enhanced.current.reset();lastAutoKey.current='';saveOnPause.current=false;send({type:'load',world:v});setPanel(null);setNotice('存档已载入。')}catch{setNotice('读取存档失败。')}};
  const save=async(slot:string)=>{if(!latest.current)return;try{await writeSlot(slot,latest.current);setNotice('存档已保存。')}catch{setNotice('保存失败，请检查浏览器存储权限。')}};
  const exportSave=()=>{if(!latest.current)return;const blob=new Blob([JSON.stringify(latest.current,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`归途旅店-第${latest.current.day}日.json`;a.click();URL.revokeObjectURL(a.href)};
- const importSave=async(file?:File)=>{if(!file)return;try{const v:unknown=JSON.parse(await file.text());if(!validateWorld(v))throw new Error('不支持的版本或缺少必要数据');enhanced.current.reset();lastAutoKey.current='';saveOnPause.current=false;send({type:'load',world:v});setPanel(null);setImportError('');setNotice('存档已导入。')}catch(e){setImportError(`导入失败：${e instanceof Error?e.message:'文件无效'}；原存档未被覆盖。`);}};
+ const importSave=async(file?:File)=>{if(!file)return;try{const v:unknown=JSON.parse(await file.text());if(!validateWorld(v))throw new Error('不支持的版本或缺少必要数据');movement.current?.reset();panelRef.current=null;enhanced.current.reset();lastAutoKey.current='';saveOnPause.current=false;send({type:'load',world:v});setPanel(null);setImportError('');setNotice('存档已导入。')}catch(e){setImportError(`导入失败：${e instanceof Error?e.message:'文件无效'}；原存档未被覆盖。`);}};
  const personObj=world?.npc.find(n=>n.id===person);
  const knownRelations=personObj&&world?Object.entries(personObj.relations).filter(([id])=>world.events.some(e=>e.public&&e.people.includes(personObj.id)&&e.people.includes(id))):[];
  const askEnhanced=async()=>{if(!personObj)return;setLlmBusy(true);setSuggested(null);const actions=['近况','消息','关系','帮助','还款','调解','交易'].map(id=>({id,label:id}));const result=await enhanced.current.ask({character:personObj.name,personality:`${personObj.role}；${personObj.trait}；目标：${personObj.goal}`,facts:[`当前状态：${personObj.action}；${personObj.reason}`, ...personObj.memories.slice(-8).map(m=>`${m.source}：${m.text}`)],allowedActions:actions},llmInput);setLlmBusy(false);if(result.ok){setLlmReply(result.text);setSuggested(result.suggestedAction)}else if(result.reason!=='stale'){setLlmReply('增强对话暂不可用，仍可使用下方离线话题。');setSuggested(null)}};
