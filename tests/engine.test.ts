@@ -440,3 +440,7 @@ it('正常新游戏续营至第1000日时，记录与周期委托仍受上限约
 });
 
 it('凌晨等待至明早应到次日八点而不是次日同一时刻',()=>{const w=createWorld(15);while(w.chapter==='进行中')advance(w,60);expect(command(w,{type:'continue'})).toBe(true);expect(command(w,{type:'travel',place:'guild'})).toBe(true);expect(command(w,{type:'guildWork'})).toBe(true);const day=w.day;expect(w.minute).toBe(120);expect(command(w,{type:'waitUntil',target:'morning'})).toBe(true);expect(w.day).toBe(day+1);expect(w.minute).toBe(480)});
+
+it('还清本金后不会产生利息，设施到上限拒绝前不扣钱',()=>{const w=createWorld(101);expect(command(w,{type:'repay',amount:60})).toBe(true);advance(w,5*1440-480);expect(w.debt).toBe(0);expect(w.events.filter(e=>e.kind==='利息')).toHaveLength(0);const u=createWorld(1);u.beds=13;const gold=u.gold;expect(command(u,{type:'upgrade',kind:'beds'})).toBe(false);expect(u.gold).toBe(gold);u.kitchen=3;expect(command(u,{type:'upgrade',kind:'kitchen'})).toBe(false);expect(u.gold).toBe(gold)});
+
+it('续营超过百日且日志满额时仍保留新短工事件和角色近期记忆',()=>{const w=createWorld(101);while(w.chapter==='进行中')advance(w,60);expect(command(w,{type:'continue'})).toBe(true);while(w.day<115)advance(w,1440);expect(w.events.length).toBe(400);expect(command(w,{type:'travel',place:'guild'})).toBe(true);expect(command(w,{type:'guildWork'})).toBe(true);const e=w.events.slice().reverse().find(e=>e.kind==='短工');expect(e).toBeDefined();expect(w.npc.every(n=>n.memories.some(m=>m.eventId===e!.id))).toBe(true);expect(w.events.length).toBe(400);expect(w.npc.every(n=>n.memories.length<=30)).toBe(true)});

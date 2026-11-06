@@ -71,6 +71,12 @@ test('失败评议后继续经营、保存载入和公会短工',async({page})=>
  await expect(page.getByRole('heading',{name:'近期周期委托记录'})).toBeVisible();
  await expect(page.locator('.modal-body .tag').filter({hasText:'周期委托'})).toHaveCount(2);
  await page.getByRole('button',{name:'关闭',exact:true}).click();
+ while(Number((await page.locator('.topbar .stat').first().innerText()).match(/第\s*(\d+)/)?.[1])<45) await waitMorning(page);
+ await page.getByRole('button',{name:'✉ 供给请求 · 待回应'}).click();
+ await expect(page.locator('.modal-body .warning').filter({hasText:'第 48 日结束前'})).toBeVisible();
+ const aid=page.getByRole('button',{name:'交付 3 份草药'});await expect(aid).toBeEnabled();await aid.click();
+ await expect(page.getByText(/第 45 日已处理/)).toBeVisible();await page.screenshot({path:'docs/evidence/endless-supply.png'});
+ await page.getByRole('button',{name:'关闭',exact:true}).click();
  await page.getByRole('button',{name:'◆ 评议记录与重开'}).click();
  await page.getByRole('button',{name:'重新开始',exact:true}).click();
  await page.getByRole('button',{name:'确认重新开始'}).click();

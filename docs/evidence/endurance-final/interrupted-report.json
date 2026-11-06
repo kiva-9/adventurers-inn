@@ -1,0 +1,10 @@
+{
+  "outcome": "已按要求中断，不是完整耐久结果",
+  "elapsed": "至少 56 秒；进程中断前未输出精确总时长",
+  "lastCheckpoint": "56 秒：倍速及经营面板",
+  "consoleErrors": "未在中断前生成汇总",
+  "pageErrors": "未在中断前生成汇总",
+  "failedRequests": "未在中断前生成汇总",
+  "httpStatuses": "未在中断前生成汇总",
+  "cause": "发现独立的损坏存档校验缺陷，等待修复后重新开始"
+}

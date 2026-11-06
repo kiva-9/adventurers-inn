@@ -1,0 +1,166 @@
+{
+  "started": "2026-11-06T21:14:09.942Z",
+  "browser": "156.0.8078.80",
+  "target": "http://127.0.0.1:5200/",
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "failedRequests": [],
+  "httpErrors": [],
+  "httpResponses": [
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5200/"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5200/assets/index-DYuZmyN_.css"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5200/assets/index-vK_M5qhs.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5200/favicon.svg"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5200/assets/worker-Dv7fMDks.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5200/assets/Filter-Bz55_UkW.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5200/assets/getTexelRangeRects-D3vd8jEu.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5200/assets/WebGLRenderer-B0cqIjoL.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5200/assets/RenderTargetSystem-D-VQ4jrD.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5200/assets/webworkerAll-Buc0PqE4.js"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5200/assets/browserAll-BYdRcNBJ.js"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5200/948545c8-d8c7-4363-a2f1-d08067f6ae91"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5200/32d80251-0057-4919-94a2-058f5cc682b3"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5200/32d80251-0057-4919-94a2-058f5cc682b3"
+    },
+    {
+      "status": 200,
+      "url": "blob:http://127.0.0.1:5200/32d80251-0057-4919-94a2-058f5cc682b3"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5200/assets/people.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5200/assets/buildings.png"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:5200/assets/town-tiles.png"
+    }
+  ],
+  "origins": [
+    "http://127.0.0.1:5200"
+  ],
+  "checkpoints": [
+    {
+      "atMs": 470,
+      "action": "新游戏、走动、保存及载入"
+    },
+    {
+      "atMs": 56415,
+      "action": "第 1 轮：倍速、♜ 经营旅店"
+    },
+    {
+      "atMs": 112342,
+      "action": "第 2 轮：倍速、♧ 人物关系"
+    },
+    {
+      "atMs": 168261,
+      "action": "第 3 轮：倍速、☷ 事件记录"
+    },
+    {
+      "atMs": 224300,
+      "action": "第 4 轮：倍速、♜ 经营旅店、保存载入"
+    },
+    {
+      "atMs": 280234,
+      "action": "第 5 轮：倍速、♧ 人物关系"
+    },
+    {
+      "atMs": 336151,
+      "action": "第 6 轮：倍速、☷ 事件记录"
+    },
+    {
+      "atMs": 392066,
+      "action": "第 7 轮：倍速、♜ 经营旅店"
+    },
+    {
+      "atMs": 448116,
+      "action": "第 8 轮：倍速、♧ 人物关系、保存载入"
+    },
+    {
+      "atMs": 504024,
+      "action": "第 9 轮：倍速、☷ 事件记录"
+    },
+    {
+      "atMs": 559931,
+      "action": "第 10 轮：倍速、♜ 经营旅店"
+    },
+    {
+      "atMs": 615851,
+      "action": "第 11 轮：倍速、♧ 人物关系"
+    },
+    {
+      "atMs": 671909,
+      "action": "第 12 轮：倍速、☷ 事件记录、保存载入"
+    },
+    {
+      "atMs": 727822,
+      "action": "第 13 轮：倍速、♜ 经营旅店"
+    },
+    {
+      "atMs": 783776,
+      "action": "第 14 轮：倍速、♧ 人物关系"
+    },
+    {
+      "atMs": 839744,
+      "action": "第 15 轮：倍速、☷ 事件记录"
+    },
+    {
+      "atMs": 895769,
+      "action": "第 16 轮：倍速、♜ 经营旅店、保存载入"
+    },
+    {
+      "atMs": 900906,
+      "action": "第 17 轮：倍速、♧ 人物关系"
+    }
+  ],
+  "limitations": [
+    "未采样内存和事件监听器数量；未测量帧率。"
+  ],
+  "elapsedMs": 901019,
+  "finished": "2026-11-06T21:29:10.961Z"
+}
