@@ -1,0 +1,14 @@
+import {describe,it,expect} from 'vitest';
+import {recurringSupplyFor,supplyTerms} from '../src/supply-cycles';
+describe('无尽供给周期',()=>{
+ it('保留原篇章旧存档的明确期限与成本',()=>expect(supplyTerms()).toEqual({cycle:0,openDay:12,deadline:15,foodCost:8,herbCost:3}));
+ it('从第45日起每15日开放四天，并按轮次变化成本',()=>{expect(recurringSupplyFor(44,1439)).toBeNull();expect(recurringSupplyFor(45,479)).toBeNull();expect(recurringSupplyFor(45,480)).toEqual({cycle:1,openDay:45,deadline:48,foodCost:8,herbCost:3});expect(recurringSupplyFor(49,480)).toBeNull();expect(recurringSupplyFor(60,480)).toEqual({cycle:2,openDay:60,deadline:63,foodCost:10,herbCost:4});expect(recurringSupplyFor(75,480)).toEqual({cycle:3,openDay:75,deadline:78,foodCost:6,herbCost:2})});
+ it('长期循环按确定性日期生成且无负数价格',()=>{for(let day=45;day<3650;day+=15){const terms=recurringSupplyFor(day,480);expect(terms?.openDay).toBe(day);expect(terms!.deadline).toBe(day+3);expect(terms!.foodCost).toBeGreaterThan(0);expect(terms!.herbCost).toBeGreaterThan(0)}});
+});
+
+import {createWorld,advance,command,validateWorld,marketUnitPrices} from '../src/engine';
+import type {World} from '../src/types';
+function toDay(w:World,day:number,minute=480){let guard=0;while((w.day<day||w.minute<minute)&&guard++<60*24*60){advance(w,60);if(!w.continued&&w.chapter!=='进行中')break}if(guard>=60*24*60)throw new Error('时间未推进')}
+it('正常新游戏续营后事件按轮次出现、超时处理且不能重复结算',()=>{const w=createWorld(101);while(w.chapter==='进行中')advance(w,60);expect(command(w,{type:'continue'})).toBe(true);toDay(w,45);expect(w.supplyCrisis).toMatchObject({status:'开放',cycle:1,openDay:45,deadline:48,foodCost:8,herbCost:3});expect(validateWorld(w)).toBe(true);const before=w.herbs;expect(command(w,{type:'supplyCrisis',choice:'守望者'})).toBe(true);expect(w.herbs).toBe(before-3);const support=w.support.守望者;expect(command(w,{type:'supplyCrisis',choice:'守望者'})).toBe(false);expect(w.support.守望者).toBe(support);toDay(w,60);expect(w.supplyCrisis).toMatchObject({status:'开放',cycle:2,foodCost:10,herbCost:4});toDay(w,64,0);expect(w.supplyCrisis).toMatchObject({status:'已解决',choice:'保留',resolvedDay:63});expect(validateWorld(JSON.parse(JSON.stringify(w)))).toBe(true)});
+it('续营势力折扣与实际账本一致，首篇章不提前打折',()=>{const w=createWorld(2);w.support.商会=5;w.support.守望者=5;expect(marketUnitPrices(w)).toEqual({food:4,herbs:3});while(w.chapter==='进行中')advance(w,60);expect(command(w,{type:'continue'})).toBe(true);expect(marketUnitPrices(w)).toEqual({food:3,herbs:2});expect(command(w,{type:'travel',place:'market'})).toBe(true);const before=w.gold;expect(command(w,{type:'buy',item:'food',amount:2})).toBe(true);expect(w.gold).toBe(before-6)});
+it('错误的循环期限和价格不会作为合法存档载入',()=>{const w=createWorld(101);while(w.chapter==='进行中')advance(w,60);command(w,{type:'continue'});toDay(w,45);const bad=structuredClone(w);bad.supplyCrisis!.foodCost=0;expect(validateWorld(bad)).toBe(false);const other=structuredClone(w);other.supplyCrisis!.deadline=100;expect(validateWorld(other)).toBe(false)});

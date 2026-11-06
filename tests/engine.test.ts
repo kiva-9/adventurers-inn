@@ -438,3 +438,5 @@ it('正常新游戏续营至第1000日时，记录与周期委托仍受上限约
   advance(w,969*1440);expect(w.day).toBe(1000);expect(w.questHistory).toHaveLength(40);expect(w.quests.length).toBeLessThanOrEqual(6);
   expect(w.events).toHaveLength(400);expect(w.npc.every(n=>n.memories.length<=30)).toBe(true);expect(validateWorld(w)).toBe(true);
 });
+
+it('凌晨等待至明早应到次日八点而不是次日同一时刻',()=>{const w=createWorld(15);while(w.chapter==='进行中')advance(w,60);expect(command(w,{type:'continue'})).toBe(true);expect(command(w,{type:'travel',place:'guild'})).toBe(true);expect(command(w,{type:'guildWork'})).toBe(true);const day=w.day;expect(w.minute).toBe(120);expect(command(w,{type:'waitUntil',target:'morning'})).toBe(true);expect(w.day).toBe(day+1);expect(w.minute).toBe(480)});
