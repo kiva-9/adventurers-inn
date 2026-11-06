@@ -51,7 +51,7 @@ describe('scene collision',()=>{
     }
   });
 });
-import {createWorld,command} from '../src/engine';
+import {createWorld,command,validateWorld} from '../src/engine';
 import {test} from 'vitest';
 test('玩家移动在柜台前被拒绝，仍可转向离开',()=>{const w=createWorld(42);expect(command(w,{type:'move',dx:0,dy:-1})).toBe(true);expect(command(w,{type:'move',dx:0,dy:-1})).toBe(true);expect(command(w,{type:'move',dx:0,dy:-1})).toBe(false);expect(w.player).toMatchObject({x:5,y:5});expect(command(w,{type:'move',dx:1,dy:0})).toBe(true)});
 
@@ -59,3 +59,32 @@ import {SQUARE_DOORS,doorDestination} from '../src/scene-transitions';
 it('广场五个门口均可从出生点走到并进入，各场所出口返回广场',()=>{for(const door of SQUARE_DOORS){const route=findPath({x:14,y:9},{x:door.x,y:door.y},(x,y)=>isSceneBlocked('square',x,y,3));expect(route,door.label).not.toBeNull();expect(doorDestination('square',door.x,door.y)).toBe(door.place);expect(doorDestination(door.place,15,14)).toBe('square')}expect(doorDestination('square',14,9)).toBeNull()});
 import {repairPlayerPosition} from '../src/save-migration';
 it('旧存档中落入新建筑的玩家迁到最近可走格；合法位置不变',()=>{const w=createWorld(1);w.player={place:'square',x:9,y:4};expect(repairPlayerPosition(w)).toBe(true);expect(isSceneBlocked(w.player.place,w.player.x,w.player.y,w.beds)).toBe(false);expect(Math.abs(w.player.x-9)+Math.abs(w.player.y-4)).toBe(2);const legal=structuredClone(w.player);expect(repairPlayerPosition(w)).toBe(false);expect(w.player).toEqual(legal)});
+
+
+it('诊所五扇窗阻挡玩家，旁边的通路仍然可走',()=>{
+  for(const x of [4,9,14,19,24]) {
+    const w=createWorld(42); w.player={place:'clinic',x,y:2};
+    expect(isSceneBlocked('clinic',x,1,w.beds)).toBe(true);
+    expect(isSceneBlocked('clinic',x,2,w.beds)).toBe(false);
+    expect(isSceneBlocked('clinic',x-1,1,w.beds)).toBe(false);
+    expect(command(w,{type:'move',dx:0,dy:-1})).toBe(false);
+    expect(w.player).toEqual({place:'clinic',x,y:2});
+    expect(command(w,{type:'move',dx:-1,dy:0})).toBe(true);
+    expect(command(w,{type:'move',dx:0,dy:-1})).toBe(true);
+  }
+});
+it('旧存档停在每一扇诊所窗上时仅迁移玩家位置，且仍可到达出口',()=>{
+  for(const x of [4,9,14,19,24]) {
+    const w=createWorld(42); w.player={place:'clinic',x,y:1};
+    expect(validateWorld(w)).toBe(true);
+    const before=structuredClone(w);
+    expect(repairPlayerPosition(w)).toBe(true);
+    expect(w.player).toEqual({place:'clinic',x:x-1,y:1});
+    expect(findPath(w.player,{x:15,y:15},(px,py)=>isSceneBlocked('clinic',px,py,w.beds))).not.toBeNull();
+    expect(validateWorld(w)).toBe(true);
+    before.player=structuredClone(w.player); before.lastMessage=w.lastMessage;
+    expect(w).toEqual(before);
+    expect(repairPlayerPosition(w)).toBe(false);
+    expect(w).toEqual(before);
+  }
+});

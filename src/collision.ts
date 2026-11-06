@@ -26,7 +26,7 @@ export function isSceneBlocked(place: Place, x: number, y: number, beds: number)
       [2,5],[10,5],[26,4],[27,11],[19,12],[12,4],[21,4],[27,8],[3,14],[25,11]]);
   }
   if (place === 'guild') return row(4,4,12) || any([[6,2],[12,2],[18,2],[24,2],[15,8],[20,8],[25,8],[23,3],[3,11]]);
-  if (place === 'clinic') return any([[5,6],[6,6],[10,6],[11,6],[15,6],[16,6],[20,6],[21,6],[25,6],[26,6],[4,3],[27,4]]);
+  if (place === 'clinic') return (y === 1 && [4,9,14,19,24].includes(x)) || any([[5,6],[6,6],[10,6],[11,6],[15,6],[16,6],[20,6],[21,6],[25,6],[26,6],[4,3],[27,4]]);
 
   // Each facade is 96×96 (3×3 tiles); decorative flowers remain walkable.
   if (place === 'market') {
